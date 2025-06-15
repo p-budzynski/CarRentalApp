@@ -1,0 +1,18 @@
+Stwórz serwis - wypożyczalnia samochodowa.
+
+Funkcjonalności:
+- Dodawanie, usuwanie, wyświetlanie aut
+- wyszukiwanie aut po marce, modelu, dostępności w danym terminie itd.
+- dodawanie, usuwanie, wyświetlanie klientów
+- wyszukiwanie po imieniu nazwisku…
+- rezerwacja aut, anulowanie rezerwacji
+- dodawanie, usuwanie, wyświetlanie pracowników oraz wyszukiwanie
+Do tych wyszukiwań i wyświetleń możesz dodać np paginacje :)
+
+Rady od kolegi developera:
+- użyj liquibase
+- testy jednostkowe i integracyjne (unitowe na 85% pokrycia)
+- spróbuj zabezpieczyć sytuację typu race condition, gdy dwóch klientów chce wynająć ten sam samochód w IDEALNIE tym samym momencie.
+- możesz przygotować kolekcje postmanowa
+- spróbuj podpiąć swaggera
+- sam json wystarczy
