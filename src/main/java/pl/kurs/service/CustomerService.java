@@ -8,17 +8,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import pl.kurs.entity.Customer;
 import pl.kurs.exception.DataNotFoundException;
+import pl.kurs.exception.ResourceNotFoundException;
 import pl.kurs.repository.CustomerRepository;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class CustomerService {
     private final CustomerRepository customerRepository;
 
-    public Optional<Customer> getCustomerById(Long id) {
-        return customerRepository.findById(id);
+    public Customer getCustomerById(Long id) {
+        return customerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + id));
     }
 
     public Page<Customer> getAll(int page, int size) {

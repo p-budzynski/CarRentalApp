@@ -50,6 +50,12 @@ public class GlobalHandlerException {
         return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(response);
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ExceptionResponseDto> handleConflictException(ConflictException exception) {
+        ExceptionResponseDto response = new ExceptionResponseDto(exception.getMessage(), HttpStatus.NOT_FOUND.toString(), LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(response);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ExceptionResponseDto> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
         String errorMessages = exception.getBindingResult()
@@ -57,7 +63,7 @@ public class GlobalHandlerException {
                 .stream()
                 .map(err -> {
                     if (err instanceof FieldError fieldError) {
-                        return fieldError.getField() + ": " + fieldError.getDefaultMessage();
+                        return fieldError.getDefaultMessage();
                     }
                     return err.getDefaultMessage();
                 })

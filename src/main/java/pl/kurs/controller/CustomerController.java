@@ -18,7 +18,6 @@ import pl.kurs.validation.Create;
 import pl.kurs.validation.Update;
 
 import java.util.List;
-import java.util.Optional;
 
 @Validated
 @RestController
@@ -34,9 +33,8 @@ public class CustomerController {
 
     @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<CustomerDto> getById(@PathVariable("id") @Min(value = 1, message = "ID must be greater than zero!") Long id) {
-        Optional<Customer> customer = customerService.getCustomerById(id);
-        return customer.map(a -> ResponseEntity.ok(customerMapper.entityToDto(a)))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        Customer customer = customerService.getCustomerById(id);
+        return ResponseEntity.ok(customerMapper.entityToDto(customer));
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)

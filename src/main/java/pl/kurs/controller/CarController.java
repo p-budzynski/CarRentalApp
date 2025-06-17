@@ -5,7 +5,6 @@ import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,13 +21,11 @@ import pl.kurs.validation.Update;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Validated
 @RestController
 @RequestMapping("/cars")
 @AllArgsConstructor
-@EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 public class CarController {
     private static final String DEFAULT_PAGE = "0";
     private static final String DEFAULT_SIZE = "10";
@@ -39,9 +36,8 @@ public class CarController {
 
     @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<CarDto> getById(@PathVariable("id") @Min(value = 1, message = "ID must be greater than zero!") Long id) {
-        Optional<Car> car = carService.getCarById(id);
-        return car.map(a -> ResponseEntity.ok(carMapper.entityToDto(a)))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        Car car = carService.getCarById(id);
+        return ResponseEntity.ok(carMapper.entityToDto(car));
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)

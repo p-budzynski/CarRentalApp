@@ -1,6 +1,5 @@
 package pl.kurs.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.kurs.entity.Reservation;
 import pl.kurs.validation.Create;
 import pl.kurs.validation.Delete;
 import pl.kurs.validation.Update;
@@ -38,10 +36,6 @@ public class CustomerDto {
 
     @NotBlank(message = "Driving license number must not be blank", groups = {Create.class, Update.class})
     private String drivingLicenseNumber;
-
-    @NotBlank(message = "Reservation must not be blank")
-    @JsonIgnore
-    private Reservation reservation;
 
     public CustomerDto(String firstName, String lastName, String email, String phoneNumber, String drivingLicenseNumber) {
         this.firstName = firstName;

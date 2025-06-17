@@ -9,10 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.kurs.validation.Create;
-import pl.kurs.validation.Delete;
-import pl.kurs.validation.Update;
-import pl.kurs.validation.YearInRange;
+import pl.kurs.validation.*;
 
 import java.math.BigDecimal;
 
@@ -33,10 +30,11 @@ public class CarDto {
     private String model;
 
     @NotNull(message = "Year of production must not be null", groups = {Create.class, Update.class})
-    @YearInRange
+    @YearInRange(groups = {Create.class, Update.class})
     private Integer yearOfProduction;
 
     @NotBlank(message = "Registration number must not be blank", groups = {Create.class, Update.class})
+    @UniqueRegistrationNumber(groups = Create.class)
     private String registrationNumber;
 
     @NotNull(message = "Price per day must not be null", groups = {Create.class, Update.class})

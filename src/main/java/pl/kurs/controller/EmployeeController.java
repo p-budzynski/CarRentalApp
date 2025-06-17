@@ -13,15 +13,13 @@ import pl.kurs.dto.EmployeeDto;
 import pl.kurs.dto.EmployeeDtoList;
 import pl.kurs.entity.Employee;
 import pl.kurs.entity.Position;
-import pl.kurs.exception.ResourceNotFoundException;
 import pl.kurs.mapper.EmployeeMapper;
-import pl.kurs.repository.PositionRepository;
 import pl.kurs.service.EmployeeService;
+import pl.kurs.service.PositionService;
 import pl.kurs.validation.Create;
 import pl.kurs.validation.Update;
 
 import java.util.List;
-import java.util.Optional;
 
 @Validated
 @RestController
@@ -34,13 +32,12 @@ public class EmployeeController {
 
     private EmployeeService employeeService;
     private EmployeeMapper employeeMapper;
-    private PositionRepository positionRepository;
+    private PositionService positionService;
 
     @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<EmployeeDto> getById(@PathVariable("id") @Min(value = 1, message = "ID must be greater than zero!") Long id) {
-        Optional<Employee> employee = employeeService.getEmployeeById(id);
-        return employee.map(a -> ResponseEntity.ok(employeeMapper.entityToDto(a)))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        Employee employee = employeeService.getEmployeeById(id);
+        return ResponseEntity.ok(employeeMapper.entityToDto(employee));
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -62,9 +59,7 @@ public class EmployeeController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public EmployeeDto createEmployee(@RequestBody @Validated(Create.class) EmployeeDto employeeDto) {
-        Position position = positionRepository.findById(employeeDto.getPositionId())
-                .orElseThrow(() -> new ResourceNotFoundException("Position not found with id: " + employeeDto.getPositionId()));
-
+        Position position = positionService.findById(employeeDto.getPositionId());
         Employee employee = employeeMapper.dtoToEntity(employeeDto);
         employee.setPosition(position);
         Employee savedEmployee = employeeService.saveEmployee(employee);
@@ -73,9 +68,7 @@ public class EmployeeController {
 
     @PutMapping
     public EmployeeDto updateEmployee(@RequestBody @Validated(Update.class) EmployeeDto employeeDto) {
-        Position position = positionRepository.findById(employeeDto.getPositionId())
-                .orElseThrow(() -> new ResourceNotFoundException("Position not found with id: " + employeeDto.getPositionId()));
-
+        Position position = positionService.findById(employeeDto.getPositionId());
         Employee employee = employeeMapper.dtoToEntityWithId(employeeDto);
         employee.setPosition(position);
         Employee updatedEmployee = employeeService.updateEmployee(employee);

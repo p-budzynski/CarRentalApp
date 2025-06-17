@@ -11,21 +11,22 @@ import org.springframework.stereotype.Service;
 import pl.kurs.entity.Car;
 import pl.kurs.exception.DataNotFoundException;
 import pl.kurs.exception.InvalidDataAccessApiUsageException;
+import pl.kurs.exception.ResourceNotFoundException;
 import pl.kurs.repository.CarRepository;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class CarService {
     private final CarRepository carRepository;
 
-    public Optional<Car> getCarById(Long id) {
-        return carRepository.findById(id);
+    public Car getCarById(Long id) {
+        return carRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Car not found with id: " + id));
     }
 
     public Page<Car> getAll(int page, int size) {
@@ -71,6 +72,10 @@ public class CarService {
         return carRepository.findAvailableCars(producer, model, startDate, endDate, PageRequest.of(page, size));
     }
 
+    public Car findForUpdate(Long id) {
+        return carRepository.findForUpdate(id)
+                .orElseThrow(() -> new DataNotFoundException("Car with id: " + id + " not found"));
 
+    }
 }
 

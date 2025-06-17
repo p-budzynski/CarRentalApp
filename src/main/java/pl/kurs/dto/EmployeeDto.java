@@ -1,7 +1,5 @@
 package pl.kurs.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.kurs.entity.Position;
 import pl.kurs.validation.Create;
 import pl.kurs.validation.Delete;
 import pl.kurs.validation.Update;
@@ -35,19 +32,16 @@ public class EmployeeDto {
     @Min(value = 1, message = "Position ID must be at least 1", groups = {Create.class, Update.class})
     private Long positionId;
 
-    @JsonIgnore
-    private Position position;
-
     @NotBlank(message = "Phone number must not be blank", groups = {Create.class, Update.class})
     private String phoneNumber;
 
     @NotBlank(message = "E-mail must not be blank", groups = {Create.class, Update.class})
     private String email;
 
-    public EmployeeDto(String firstName, String lastName, Position position, String phoneNumber, String email) {
+    public EmployeeDto(String firstName, String lastName, Long positionId, String phoneNumber, String email) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.position = position;
+        this.positionId = positionId;
         this.phoneNumber = phoneNumber;
         this.email = email;
     }

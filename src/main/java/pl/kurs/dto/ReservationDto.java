@@ -1,17 +1,14 @@
 package pl.kurs.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.kurs.entity.Car;
-import pl.kurs.entity.Customer;
-import pl.kurs.entity.Status;
 import pl.kurs.validation.Create;
 import pl.kurs.validation.Delete;
 import pl.kurs.validation.EndDateAfterStartDate;
@@ -35,23 +32,15 @@ public class ReservationDto {
     @Min(value = 1, message = "Car ID must be at least 1", groups = {Create.class, Update.class})
     private Long carId;
 
-    @JsonIgnore
-    private Car car;
-
     @NotNull(message = "Customer ID is required", groups = {Create.class, Update.class})
     @Min(value = 1, message = "Customer ID must be at least 1", groups = {Create.class, Update.class})
     private Long customerId;
 
-    @JsonIgnore
-    private Customer customer;
-
     @NotNull(message = "Start date is required", groups = {Create.class, Update.class})
-
     @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate startDate;
 
     @NotNull(message = "End date is required", groups = {Create.class, Update.class})
-
     @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate endDate;
 
@@ -63,16 +52,13 @@ public class ReservationDto {
     @Min(value = 1, message = "Status ID must be at least 1", groups = {Create.class, Update.class})
     private Long statusId;
 
-    @JsonIgnore
-    private Status status;
-
-    public ReservationDto(Car car, Customer customer, LocalDate startDate, LocalDate endDate, BigDecimal totalAmount, Status status) {
-        this.car = car;
-        this.customer = customer;
+    public ReservationDto(Long carId, Long customerId, LocalDate startDate, LocalDate endDate, BigDecimal totalAmount, Long statusId) {
+        this.carId = carId;
+        this.customerId = customerId;
         this.startDate = startDate;
         this.endDate = endDate;
         this.totalAmount = totalAmount;
-        this.status = status;
+        this.statusId = statusId;
     }
 
 }
