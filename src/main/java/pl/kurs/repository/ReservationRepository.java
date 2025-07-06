@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import pl.kurs.entity.Reservation;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
@@ -27,4 +28,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             """)
     boolean existsOverlapExcludingReservation(Long carId, LocalDate startDate, LocalDate endDate, Long excludeId);
 
+    @Query("SELECT r FROM Reservation r WHERE r.startDate = :startDate AND r.status IN ('RESERVED')")
+    List<Reservation> findActiveReservationForDate(LocalDate startDate);
 }

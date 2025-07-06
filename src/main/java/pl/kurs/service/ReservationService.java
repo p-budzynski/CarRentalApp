@@ -2,10 +2,8 @@ package pl.kurs.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.stereotype.Service;
 import pl.kurs.dto.ReservationDto;
 import pl.kurs.entity.Car;
@@ -17,7 +15,8 @@ import pl.kurs.exception.ResourceNotFoundException;
 import pl.kurs.mapper.ReservationMapper;
 import pl.kurs.repository.ReservationRepository;
 
-import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
+import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -84,4 +83,7 @@ public class ReservationService {
         return reservation;
     }
 
+    public List<Reservation> findActiveReservationForDate(LocalDate startDate) {
+        return reservationRepository.findActiveReservationForDate(startDate);
+    }
 }
