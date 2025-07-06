@@ -6,15 +6,20 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import pl.kurs.dto.EmployeeDto;
 import pl.kurs.entity.Employee;
+import pl.kurs.entity.Position;
 import pl.kurs.exception.DataNotFoundException;
 import pl.kurs.exception.ResourceNotFoundException;
+import pl.kurs.mapper.EmployeeMapper;
 import pl.kurs.repository.EmployeeRepository;
 
 @Service
 @RequiredArgsConstructor
 public class EmployeeService {
     private final EmployeeRepository employeeRepository;
+    private final EmployeeMapper employeeMapper;
+    private final PositionService positionService;
 
     public Employee getEmployeeById(Long id) {
         return employeeRepository.findById(id)
@@ -43,5 +48,12 @@ public class EmployeeService {
 
     public Page<Employee> getByFirstNameAndLastNameAndPosition(String firstName, String lastName, String position, int page, int size) {
         return employeeRepository.findAllByFirstNameAndLastNameAndPosition(firstName, lastName, position, PageRequest.of(page, size));
+    }
+
+    public Employee createEmployee(EmployeeDto employeeDto) {
+        Position position = positionService.findById(employeeDto.getPositionId());
+        Employee employee = employeeMapper.dtoToEntityWithId(employeeDto);
+        employee.setPosition(position);
+        return employee;
     }
 }

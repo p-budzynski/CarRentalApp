@@ -12,7 +12,7 @@ public interface ReservationMapper {
 
     @Mapping(source = "car.id", target = "carId")
     @Mapping(source = "customer.id", target = "customerId")
-    @Mapping(source = "status.id", target = "statusId")
+    @Mapping(source = "status.value", target = "statusName")
     ReservationDto entityToDto(Reservation reservation);
 
     List<ReservationDto> entitiesToDtos(List<Reservation> reservations);

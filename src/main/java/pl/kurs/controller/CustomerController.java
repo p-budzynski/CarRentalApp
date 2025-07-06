@@ -10,14 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.kurs.dto.CustomerDto;
-import pl.kurs.dto.CustomerDtoList;
 import pl.kurs.entity.Customer;
 import pl.kurs.mapper.CustomerMapper;
 import pl.kurs.service.CustomerService;
 import pl.kurs.validation.Create;
 import pl.kurs.validation.Update;
-
-import java.util.List;
 
 @Validated
 @RestController
@@ -37,21 +34,12 @@ public class CustomerController {
         return ResponseEntity.ok(customerMapper.entityToDto(customer));
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public Page<CustomerDto> getAll(@RequestParam(defaultValue = DEFAULT_PAGE) @Min(0) int page,
                                     @RequestParam(defaultValue = DEFAULT_SIZE) @Min(1) @Max(MAX_SIZE) int size) {
 
         Page<Customer> customers = customerService.getAll(page, size);
         return customers.map(customerMapper::entityToDto);
-    }
-
-    @GetMapping(produces = MediaType.APPLICATION_XML_VALUE)
-    public CustomerDtoList getAllXml(@RequestParam(defaultValue = DEFAULT_PAGE) @Min(0) int page,
-                                     @RequestParam(defaultValue = DEFAULT_SIZE) @Min(1) @Max(MAX_SIZE) int size) {
-
-        Page<Customer> customers = customerService.getAll(page, size);
-        List<CustomerDto> dtos = customerMapper.entitiesToDtos(customers.getContent());
-        return new CustomerDtoList(dtos);
     }
 
     @PostMapping

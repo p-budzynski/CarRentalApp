@@ -42,12 +42,6 @@ CREATE TABLE employees (
 );
 
 
-CREATE TABLE statuses (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE
-);
-
-
 CREATE TABLE reservations (
     id BIGSERIAL PRIMARY KEY,
     car_id BIGINT NOT NULL,
@@ -55,7 +49,7 @@ CREATE TABLE reservations (
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     total_amount NUMERIC(8,2) NOT NULL,
-    status_id BIGINT NOT NULL,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('RESERVED', 'RENTED', 'FINISHED', 'CANCELED')),
     CONSTRAINT fk_car
         FOREIGN KEY (car_id)
         REFERENCES cars(id)
@@ -63,9 +57,5 @@ CREATE TABLE reservations (
     CONSTRAINT fk_customer
         FOREIGN KEY (customer_id)
         REFERENCES customers(id)
-        ON DELETE RESTRICT,
-    CONSTRAINT fk_status
-        FOREIGN KEY (status_id)
-        REFERENCES statuses(id)
         ON DELETE RESTRICT
 );

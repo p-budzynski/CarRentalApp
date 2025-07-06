@@ -11,9 +11,20 @@
 			"item": [
 				{
 					"name": "Get all cars - json",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"accept": true
+						}
+					},
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
 						"url": "http://localhost:8081/cars"
 					},
 					"response": []
@@ -40,12 +51,23 @@
 				},
 				{
 					"name": "Get car by id - xml",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"accept": true
+						}
+					},
 					"request": {
 						"auth": {
 							"type": "noauth"
 						},
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
 						"url": "http://localhost:8081/cars/1"
 					},
 					"response": []
@@ -132,7 +154,7 @@
 						},
 						"method": "DELETE",
 						"header": [],
-						"url": "http://localhost:8081/cars/20"
+						"url": "http://localhost:8081/cars/11"
 					},
 					"response": []
 				},
@@ -221,14 +243,22 @@
 				{
 					"name": "Get all customers - json",
 					"protocolProfileBehavior": {
-						"disabledSystemHeaders": {}
+						"disabledSystemHeaders": {
+							"accept": true
+						}
 					},
 					"request": {
 						"auth": {
 							"type": "noauth"
 						},
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
 						"url": "http://localhost:8081/customers"
 					},
 					"response": []
@@ -259,14 +289,22 @@
 				{
 					"name": "Get customer by id - xml",
 					"protocolProfileBehavior": {
-						"disabledSystemHeaders": {}
+						"disabledSystemHeaders": {
+							"accept": true
+						}
 					},
 					"request": {
 						"auth": {
 							"type": "noauth"
 						},
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
 						"url": "http://localhost:8081/customers/1"
 					},
 					"response": []
@@ -416,24 +454,23 @@
 				{
 					"name": "Get all employees - json",
 					"protocolProfileBehavior": {
-						"disableBodyPruning": true,
-						"disabledSystemHeaders": {}
+						"disabledSystemHeaders": {
+							"accept": true,
+							"content-type": true
+						}
 					},
 					"request": {
 						"auth": {
 							"type": "noauth"
 						},
 						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"id\": 6,\r\n    \"firstName\": \"Andrzej\",\r\n    \"lastName\": \"Przekładam\",\r\n    \"email\": \"a.przekladam@email.com\",\r\n    \"phoneNumber\": \"700123456\",\r\n    \"drivingLicenseNumber\": \"WXZ123456789\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
 							}
-						},
+						],
 						"url": "http://localhost:8081/employees"
 					},
 					"response": []
@@ -441,8 +478,32 @@
 				{
 					"name": "Get all employees - xml",
 					"protocolProfileBehavior": {
-						"disableBodyPruning": true,
 						"disabledSystemHeaders": {
+							"accept": true,
+							"content-type": true
+						}
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"url": "http://localhost:8081/employees"
+					},
+					"response": []
+				},
+				{
+					"name": "Get employee by id - xml",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true,
 							"accept": true
 						}
 					},
@@ -458,40 +519,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"id\": 6,\r\n    \"firstName\": \"Andrzej\",\r\n    \"lastName\": \"Przekładam\",\r\n    \"email\": \"a.przekladam@email.com\",\r\n    \"phoneNumber\": \"700123456\",\r\n    \"drivingLicenseNumber\": \"WXZ123456789\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": "http://localhost:8081/employees"
-					},
-					"response": []
-				},
-				{
-					"name": "Get employee by id - xml",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true,
-						"disabledSystemHeaders": {}
-					},
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"id\": 6,\r\n    \"firstName\": \"Andrzej\",\r\n    \"lastName\": \"Przekładam\",\r\n    \"email\": \"a.przekladam@email.com\",\r\n    \"phoneNumber\": \"700123456\",\r\n    \"drivingLicenseNumber\": \"WXZ123456789\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": "http://localhost:8081/employees/1"
 					},
 					"response": []
@@ -499,7 +526,6 @@
 				{
 					"name": "Get employee by id - json",
 					"protocolProfileBehavior": {
-						"disableBodyPruning": true,
 						"disabledSystemHeaders": {
 							"accept": true
 						}
@@ -516,15 +542,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"id\": 6,\r\n    \"firstName\": \"Andrzej\",\r\n    \"lastName\": \"Przekładam\",\r\n    \"email\": \"a.przekladam@email.com\",\r\n    \"phoneNumber\": \"700123456\",\r\n    \"drivingLicenseNumber\": \"WXZ123456789\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": "http://localhost:8081/employees/1"
 					},
 					"response": []
@@ -641,9 +658,21 @@
 			"item": [
 				{
 					"name": "Get all reservations - json",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"accept": true
+						}
+					},
 					"request": {
 						"method": "GET",
-						"header": []
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": "http://localhost:8081/reservations"
 					},
 					"response": []
 				},
@@ -696,7 +725,9 @@
 				{
 					"name": "Get reservation by id - xml",
 					"protocolProfileBehavior": {
-						"disabledSystemHeaders": {}
+						"disabledSystemHeaders": {
+							"accept": true
+						}
 					},
 					"request": {
 						"auth": {
@@ -706,9 +737,8 @@
 						"header": [
 							{
 								"key": "Accept",
-								"value": "application/json",
-								"type": "text",
-								"disabled": true
+								"value": "application/xml",
+								"type": "text"
 							}
 						],
 						"url": "http://localhost:8081/reservations/1"
@@ -728,7 +758,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"startDate\": \"18-06-2025\",\r\n    \"endDate\": \"20-06-2025\",\r\n    \"totalAmount\": 450.00,\r\n    \"carId\": 8,\r\n    \"customerId\": 2,\r\n    \"statusId\": 1\r\n}",
+							"raw": "{\r\n    \"startDate\": \"20-08-2025\",\r\n    \"endDate\": \"22-08-2025\",\r\n    \"totalAmount\": 450.00,\r\n    \"carId\": 8,\r\n    \"customerId\": 2,\r\n    \"statusName\": \"RESERVED\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -752,7 +782,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": 12,\r\n    \"carId\": 5,\r\n    \"customerId\": 2,\r\n    \"startDate\": \"18-06-2025\",\r\n    \"endDate\": \"20-06-2025\",\r\n    \"totalAmount\": 750.00,\r\n    \"statusId\": 2\r\n}",
+							"raw": "{\r\n    \"id\": 1,\r\n    \"carId\": 2,\r\n    \"customerId\": 2,\r\n    \"startDate\": \"06-07-2025\",\r\n    \"endDate\": \"08-08-2025\",\r\n    \"totalAmount\": 750.00,\r\n    \"statusName\": \"RENTED\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -774,7 +804,7 @@
 						},
 						"method": "PUT",
 						"header": [],
-						"url": "http://localhost:8081/reservations/1/cancel"
+						"url": "http://localhost:8081/reservations/2/cancel"
 					},
 					"response": []
 				}

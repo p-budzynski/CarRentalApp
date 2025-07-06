@@ -10,16 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.kurs.dto.EmployeeDto;
-import pl.kurs.dto.EmployeeDtoList;
 import pl.kurs.entity.Employee;
-import pl.kurs.entity.Position;
 import pl.kurs.mapper.EmployeeMapper;
 import pl.kurs.service.EmployeeService;
-import pl.kurs.service.PositionService;
 import pl.kurs.validation.Create;
 import pl.kurs.validation.Update;
-
-import java.util.List;
 
 @Validated
 @RestController
@@ -32,7 +27,6 @@ public class EmployeeController {
 
     private EmployeeService employeeService;
     private EmployeeMapper employeeMapper;
-    private PositionService positionService;
 
     @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<EmployeeDto> getById(@PathVariable("id") @Min(value = 1, message = "ID must be greater than zero!") Long id) {
@@ -40,37 +34,24 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeMapper.entityToDto(employee));
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public Page<EmployeeDto> getAll(@RequestParam(defaultValue = DEFAULT_PAGE) @Min(0) int page,
                                     @RequestParam(defaultValue = DEFAULT_SIZE) @Min(1) @Max(MAX_SIZE) int size) {
         Page<Employee> employees = employeeService.getAll(page, size);
         return employees.map(employeeMapper::entityToDto);
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_XML_VALUE)
-    public EmployeeDtoList getAllXml(@RequestParam(defaultValue = DEFAULT_PAGE) @Min(0) int page,
-                                     @RequestParam(defaultValue = DEFAULT_SIZE) @Min(1) @Max(MAX_SIZE) int size) {
-
-        Page<Employee> employees = employeeService.getAll(page, size);
-        List<EmployeeDto> dtos = employeeMapper.entitiesToDtos(employees.getContent());
-        return new EmployeeDtoList(dtos);
-    }
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public EmployeeDto createEmployee(@RequestBody @Validated(Create.class) EmployeeDto employeeDto) {
-        Position position = positionService.findById(employeeDto.getPositionId());
-        Employee employee = employeeMapper.dtoToEntity(employeeDto);
-        employee.setPosition(position);
+        Employee employee = employeeService.createEmployee(employeeDto);
         Employee savedEmployee = employeeService.saveEmployee(employee);
         return employeeMapper.entityToDto(savedEmployee);
     }
 
     @PutMapping
     public EmployeeDto updateEmployee(@RequestBody @Validated(Update.class) EmployeeDto employeeDto) {
-        Position position = positionService.findById(employeeDto.getPositionId());
-        Employee employee = employeeMapper.dtoToEntityWithId(employeeDto);
-        employee.setPosition(position);
+        Employee employee = employeeService.createEmployee(employeeDto);
         Employee updatedEmployee = employeeService.updateEmployee(employee);
         return employeeMapper.entityToDto(updatedEmployee);
     }

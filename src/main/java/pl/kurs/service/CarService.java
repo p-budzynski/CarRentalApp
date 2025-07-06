@@ -14,14 +14,13 @@ import pl.kurs.exception.InvalidDataAccessApiUsageException;
 import pl.kurs.exception.ResourceNotFoundException;
 import pl.kurs.repository.CarRepository;
 
-import java.lang.reflect.Field;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class CarService {
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "producer", "model", "year_of_production", "registration_number", "price_per_day");
     private final CarRepository carRepository;
 
     public Car getCarById(Long id) {
@@ -51,11 +50,7 @@ public class CarService {
 
     public Page<Car> getAllSorted(String property, Sort.Direction direction, int page, int size) {
 
-        List<String> allowedProperties = Arrays.stream(Car.class.getDeclaredFields())
-                .map(Field::getName)
-                .toList();
-
-        if (!allowedProperties.contains(property)) {
+        if (!ALLOWED_SORT_FIELDS.contains(property)) {
             throw new InvalidDataAccessApiUsageException("Invalid sort field: " + property);
         }
 

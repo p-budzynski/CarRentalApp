@@ -3,6 +3,7 @@ package pl.kurs.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
@@ -48,17 +49,16 @@ public class ReservationDto {
     @DecimalMin(value = "0.01", message = "Total amount must be greater than 0", groups = {Create.class, Update.class})
     private BigDecimal totalAmount;
 
-    @NotNull(message = "Status ID is required", groups = {Create.class, Update.class})
-    @Min(value = 1, message = "Status ID must be at least 1", groups = {Create.class, Update.class})
-    private Long statusId;
+    @NotBlank(message = "Status name is required", groups = {Create.class, Update.class})
+    private String statusName;
 
-    public ReservationDto(Long carId, Long customerId, LocalDate startDate, LocalDate endDate, BigDecimal totalAmount, Long statusId) {
+    public ReservationDto(Long carId, Long customerId, LocalDate startDate, LocalDate endDate, BigDecimal totalAmount, String statusName) {
         this.carId = carId;
         this.customerId = customerId;
         this.startDate = startDate;
         this.endDate = endDate;
         this.totalAmount = totalAmount;
-        this.statusId = statusId;
+        this.statusName = statusName;
     }
 
 }

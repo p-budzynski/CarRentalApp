@@ -1,30 +1,36 @@
 package pl.kurs.entity;
 
-import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import pl.kurs.exception.StatusNotFoundException;
 
-@Entity
-@Table(name = "statuses")
-@NoArgsConstructor
+@AllArgsConstructor
 @Getter
-@Setter
-public class Status {
+public enum Status {
+    RESERVED("RESERVED"),
+    RENTED("RENTED"),
+    FINISHED("FINISHED"),
+    CANCELED("CANCELED");
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final String value;
 
-    @Column(nullable = false, unique = true)
-    private String name;
+    public static Status fromString(String statusName) {
+        if (statusName == null || statusName.trim().isEmpty()) {
+            throw new StatusNotFoundException("Reservation status cannot be empty.");
+        }
 
-    public Status(String name) {
-        this.name = name;
+        return switch (statusName.trim().toUpperCase()) {
+            case "RESERVED" -> RESERVED;
+            case "RENTED" -> RENTED;
+            case "FINISHED" -> FINISHED;
+            case "CANCELED" -> CANCELED;
+            default -> throw new StatusNotFoundException("Unknown reservation status: " + statusName);
+        };
     }
 
     @Override
     public String toString() {
-        return name;
+        return value;
     }
+
 }

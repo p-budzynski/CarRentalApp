@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.kurs.dto.CarDto;
-import pl.kurs.dto.CarDtoList;
 import pl.kurs.entity.Car;
 import pl.kurs.mapper.CarMapper;
 import pl.kurs.service.CarService;
@@ -20,7 +19,6 @@ import pl.kurs.validation.Create;
 import pl.kurs.validation.Update;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Validated
 @RestController
@@ -40,22 +38,13 @@ public class CarController {
         return ResponseEntity.ok(carMapper.entityToDto(car));
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public Page<CarDto> getAll(
             @RequestParam(defaultValue = DEFAULT_PAGE) @Min(0) int page,
             @RequestParam(defaultValue = DEFAULT_SIZE) @Min(1) @Max(MAX_SIZE) int size) {
 
         Page<Car> cars = carService.getAll(page, size);
         return cars.map(carMapper::entityToDto);
-    }
-
-    @GetMapping(produces = MediaType.APPLICATION_XML_VALUE)
-    public CarDtoList getAllXml(@RequestParam(defaultValue = DEFAULT_PAGE) @Min(0) int page,
-                                @RequestParam(defaultValue = DEFAULT_SIZE) @Min(1) @Max(MAX_SIZE) int size) {
-
-        Page<Car> cars = carService.getAll(page, size);
-        List<CarDto> dtos = carMapper.entitiesToDtos(cars.getContent());
-        return new CarDtoList(dtos);
     }
 
     @PostMapping

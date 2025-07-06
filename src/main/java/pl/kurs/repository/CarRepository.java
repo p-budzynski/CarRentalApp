@@ -16,10 +16,12 @@ public interface CarRepository extends JpaRepository<Car, Long> {
     @Query("SELECT c FROM Car c WHERE (c.producer = :producer OR :producer IS NULL) AND (c.model = :model OR :model IS NULL)")
     Page<Car> findByProducerAndModel(String producer, String model, Pageable pageable);
 
-    @Query("SELECT c FROM Car c WHERE (c.producer = :producer OR :producer IS NULL) AND (c.model = :model OR :model IS NULL) " +
-           "AND c.id NOT IN (SELECT r.car.id FROM Reservation r WHERE " +
-           "r.status.id IN (SELECT s.id FROM Status s WHERE s.name IN ('CONFIRMED', 'ACTIVE')) " +
-           "AND r.startDate < :endDate AND r.endDate > :startDate)")
+    @Query("SELECT c FROM Car c WHERE " +
+           "(c.producer = :producer OR :producer IS NULL) AND " +
+           "(c.model = :model OR :model IS NULL) AND " +
+           "c.id NOT IN (SELECT r.car.id FROM Reservation r WHERE " +
+           "r.status IN ('RESERVED', 'RENTED') AND " +
+           "r.startDate < :endDate AND r.endDate > :startDate)")
     Page<Car> findAvailableCars(String producer, String model, LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

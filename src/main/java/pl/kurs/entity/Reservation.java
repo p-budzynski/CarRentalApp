@@ -35,8 +35,8 @@ public class Reservation {
     @Column(name = "total_amount", precision = 8, scale = 2, nullable = false)
     private BigDecimal totalAmount;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-    @JoinColumn(name = "status_id", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
     private Status status;
 
     public Reservation(Car car, Customer customer, LocalDate startDate, LocalDate endDate, BigDecimal totalAmount, Status status) {
@@ -52,6 +52,6 @@ public class Reservation {
     public String toString() {
         return "Reservation [id: " + id + ", car id: " + car.getId() + ", customer id: " + customer.getId() +
                ",\nstart date: " + startDate + ", end date: " + endDate +
-               ",\ntotal amount: " + totalAmount + ", status: " + status.getName() + "]";
+               ",\ntotal amount: " + totalAmount + ", status: " + status.getValue() + "]";
     }
 }
