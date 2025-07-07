@@ -1,6 +1,6 @@
 package pl.kurs.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,12 +12,16 @@ import java.util.List;
 
 @Component
 public class CarRentalReminderService {
-    private final static String MANAGER_E_MAIL = "manager@wypozyczalnia.pl";
+    @Value("${notification.manager-email}")
+    private String managerEmail;
 
-    @Autowired
+    @Value("${notification.noreply-email}")
+    private String noReplyMail;
+
+    @Value("${notification.system-email}")
+    private String systemMail;
+
     private ReservationService reservationService;
-
-    @Autowired
     private JavaMailSender mailSender;
 
     @Scheduled(cron = "0 0 8 * * ?")
@@ -36,17 +40,17 @@ public class CarRentalReminderService {
         message.setTo(reservation.getCustomer().getEmail());
         message.setSubject("Car rental reminder");
         message.setText(createCustomerReminderText(reservation));
-        message.setFrom("noreply@wypozyczalnia.pl");
+        message.setFrom(noReplyMail);
 
         mailSender.send(message);
     }
 
     private void sendEmployeeReminder(Reservation reservation) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(MANAGER_E_MAIL);
+        message.setTo(managerEmail);
         message.setSubject("Car handover reminder");
         message.setText(createEmployeeReminderText(reservation));
-        message.setFrom("system@wypozyczalnia.pl");
+        message.setFrom(systemMail);
 
         mailSender.send(message);
     }

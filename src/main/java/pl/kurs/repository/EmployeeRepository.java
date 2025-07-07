@@ -12,4 +12,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
            "AND (e.lastName = :lastName OR :lastName IS NULL) " +
            "AND (e.position.name = :position OR :position IS NULL)")
     Page<Employee> findAllByFirstNameAndLastNameAndPosition(String firstName, String lastName, String position, Pageable pageable);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByPhoneNumber(String phoneNumber);
 }

@@ -7,13 +7,12 @@ import pl.kurs.repository.CarRepository;
 
 @RequiredArgsConstructor
 public class UniqueRegistrationNumberValidator implements ConstraintValidator<UniqueRegistrationNumber, String> {
-private final CarRepository carRepository;
+    private final CarRepository carRepository;
 
-@Override
+    @Override
     public boolean isValid(String registration, ConstraintValidatorContext ctx) {
         if (registration == null) return true;
         return !carRepository.existsByRegistrationNumber(registration);
     }
-
 
 }

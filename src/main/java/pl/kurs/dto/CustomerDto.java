@@ -1,5 +1,6 @@
 package pl.kurs.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,9 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.kurs.validation.Create;
-import pl.kurs.validation.Delete;
-import pl.kurs.validation.Update;
+import pl.kurs.validation.*;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,13 +27,17 @@ public class CustomerDto {
     @NotBlank(message = "Last name must not be blank", groups = {Create.class, Update.class})
     private String lastName;
 
+    @Email(groups = {Create.class, Update.class})
     @NotBlank(message = "E-mail must not be blank", groups = {Create.class, Update.class})
+    @UniqueCustomerEmail(groups = {Create.class, Update.class})
     private String email;
 
     @NotBlank(message = "Phone number must not be blank", groups = {Create.class, Update.class})
+    @UniqueCustomerPhone(groups = {Create.class, Update.class})
     private String phoneNumber;
 
     @NotBlank(message = "Driving license number must not be blank", groups = {Create.class, Update.class})
+    @UniqueDrivingLicenseNumber(groups = {Create.class, Update.class})
     private String drivingLicenseNumber;
 
     public CustomerDto(String firstName, String lastName, String email, String phoneNumber, String drivingLicenseNumber) {

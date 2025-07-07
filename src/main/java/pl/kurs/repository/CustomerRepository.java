@@ -12,4 +12,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     Page<Customer> findAllByFirstNameAndLastName(String firstName, String lastName, Pageable pageable);
 
     boolean existsByEmail(String email);
+
+    boolean existsByPhoneNumber(String phoneNumber);
+
+    boolean existsByDrivingLicenseNumber(String drivingLicenseNumber);
 }
