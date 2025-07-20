@@ -57,7 +57,7 @@ public class ReservationController {
         return reservationMapper.entityToDto(updatedReservation);
     }
 
-    @PutMapping("/{id}/cancel")
+    @PutMapping("/{id}/cancellations")
     public ResponseEntity<ReservationDto> cancelReservationById(@PathVariable("id") @Min(value = 1, message = "ID must be greater than zero!") Long id) {
         Reservation reservation = reservationService.cancelReservationById(id);
         return ResponseEntity.ok(reservationMapper.entityToDto(reservation));

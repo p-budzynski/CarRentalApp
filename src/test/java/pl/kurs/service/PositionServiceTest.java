@@ -1,6 +1,5 @@
 package pl.kurs.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,7 +13,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,27 +22,20 @@ public class PositionServiceTest {
     private PositionRepository positionRepositoryMock;
 
     @InjectMocks
-    private PositionService positionServiceMock;
-
-    private Position samplePosition;
-
-    @BeforeEach
-    void setUp() {
-        samplePosition = new Position("MECHANIC");
-        samplePosition.setId(1L);
-    }
+    private PositionService positionService;
 
     @Test
     void shouldReturnPosition() {
         //given
-        when(positionRepositoryMock.findById(1L)).thenReturn(Optional.of(samplePosition));
+        Position testPosition = new Position("MECHANIC");
+        testPosition.setId(1L);
+        when(positionRepositoryMock.findById(1L)).thenReturn(Optional.of(testPosition));
 
         //when
-        Position result = positionServiceMock.findById(1L);
+        Position result = positionService.findById(1L);
 
         //then
-        assertThat(result).isEqualTo(samplePosition);
-        verify(positionRepositoryMock).findById(1L);
+        assertThat(result).isEqualTo(testPosition);
     }
 
     @Test
@@ -53,7 +44,7 @@ public class PositionServiceTest {
         when(positionRepositoryMock.findById(99L)).thenReturn(Optional.empty());
 
         //when then
-        assertThatThrownBy(() -> positionServiceMock.findById(99L))
+        assertThatThrownBy(() -> positionService.findById(99L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Position not found with id: 99");
     }

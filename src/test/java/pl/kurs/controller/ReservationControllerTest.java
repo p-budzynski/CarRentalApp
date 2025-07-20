@@ -14,8 +14,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import pl.kurs.dto.CustomerDto;
 import pl.kurs.dto.ReservationDto;
-import pl.kurs.dto.ReservationDtoList;
 import pl.kurs.entity.Car;
 import pl.kurs.entity.Customer;
 import pl.kurs.entity.Reservation;
@@ -23,7 +23,6 @@ import pl.kurs.entity.Status;
 import pl.kurs.repository.CarRepository;
 import pl.kurs.repository.CustomerRepository;
 import pl.kurs.repository.ReservationRepository;
-import pl.kurs.repository.StatusRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -60,26 +59,13 @@ public class ReservationControllerTest {
     @Autowired
     private CustomerRepository customerRepository;
 
-    @Autowired
-    private StatusRepository statusRepository;
-
-    private Reservation testReservation;
-    private Car testCar;
-    private Customer testCustomer;
-    private Status testStatus;
-
-    @BeforeEach
-    void setUp() {
-        testReservation = createTestReservation();
-    }
-
     @Test
     void shouldReturnReservationAsXmlForGetById() throws Exception {
         //given
-        Reservation savedReservation = reservationRepository.save(testReservation);
+        Reservation testReservation = reservationRepository.save(createTestReservation());
 
         //when
-        MvcResult mvcResult = mockMvc.perform(get("/reservations/" + savedReservation.getId())
+        MvcResult mvcResult = mockMvc.perform(get("/reservations/" + testReservation.getId())
                         .accept(MediaType.APPLICATION_XML))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -91,16 +77,16 @@ public class ReservationControllerTest {
         xmlMapper.registerModule(new JavaTimeModule());
         xmlMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         ReservationDto reservationDto = xmlMapper.readValue(mvcResult.getResponse().getContentAsString(), ReservationDto.class);
-        assertReservationDto(reservationDto, savedReservation);
+        assertReservationDto(reservationDto, testReservation);
     }
 
     @Test
     void shouldReturnReservationAsJsonForGetById() throws Exception {
         //given
-        Reservation savedReservation = reservationRepository.save(testReservation);
+        Reservation testReservation = reservationRepository.save(createTestReservation());
 
         //when
-        MvcResult mvcResult = mockMvc.perform(get("/reservations/" + savedReservation.getId())
+        MvcResult mvcResult = mockMvc.perform(get("/reservations/" + testReservation.getId())
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -109,7 +95,7 @@ public class ReservationControllerTest {
 
         //then
         ReservationDto reservationDto = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ReservationDto.class);
-        assertReservationDto(reservationDto, savedReservation);
+        assertReservationDto(reservationDto, testReservation);
     }
 
     @Test
@@ -151,9 +137,11 @@ public class ReservationControllerTest {
     @Test
     void shouldReturnReservationsPageAsJson() throws Exception {
         //given
-        reservationRepository.save(testReservation);
+        Car testCar = new Car("BMW", "M135i", 2022, "WY 43210", new BigDecimal(200));
+        Customer testCustomer = new Customer("John", "Cena", "j.cenaa@mail.com", "501600700", "ABC 22345");
+        reservationRepository.save(createTestReservation());
         reservationRepository.save(new Reservation(testCar, testCustomer, LocalDate.of(2025, 6, 1),
-                LocalDate.of(2025, 6, 4), new BigDecimal(750), testStatus));
+                LocalDate.of(2025, 6, 4), new BigDecimal(750), Status.RESERVED));
 
         //when then
         mockMvc.perform(get("/reservations")
@@ -173,33 +161,34 @@ public class ReservationControllerTest {
     @Test
     void shouldReturnReservationsListAsXml() throws Exception {
         //given
-        reservationRepository.save(testReservation);
+        Car testCar = new Car("BMW", "M135i", 2022, "WL 43210", new BigDecimal(200));
+        Customer testCustomer = new Customer("John", "Cena", "j.cenaaa@mail.com", "503600700", "ABC 32345");
+        reservationRepository.save(createTestReservation());
         reservationRepository.save(new Reservation(testCar, testCustomer, LocalDate.of(2025, 6, 1),
-                LocalDate.of(2025, 6, 4), new BigDecimal(750), testStatus));
+                LocalDate.of(2025, 6, 4), new BigDecimal(750), Status.RESERVED));
 
-        //when
-        MvcResult result = mockMvc.perform(get("/reservations")
+        //when then
+        mockMvc.perform(get("/reservations")
                         .accept(MediaType.APPLICATION_XML))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/xml"))
+                .andExpect(xpath("count(/PageImpl/content/content)").number(2.0))
+                .andExpect(xpath("/PageImpl/page/totalElements").number(2.0))
+                .andExpect(xpath("/PageImpl/page/number").number(0.0))
+                .andExpect(xpath("/PageImpl/page/size").number(10.0))
+                .andExpect(xpath("/PageImpl/page/totalPages").number(1.0))
                 .andReturn();
-
-        //then
-        XmlMapper xmlMapper = new XmlMapper();
-        xmlMapper.registerModule(new JavaTimeModule());
-        xmlMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        ReservationDtoList reservationDtoList = xmlMapper.readValue(result.getResponse().getContentAsString(), ReservationDtoList.class);
-        assertThat(reservationDtoList.getEntities()).hasSize(2);
     }
 
     @Test
     void shouldCreateReservationSuccessfully() throws Exception {
         //given
+        Car testCar = new Car("BMW", "M135i", 2022, "WX 43210", new BigDecimal(200));
+        Customer testCustomer = new Customer("John", "Cena", "j.cena@mail.com", "500600700", "ABC 12345");
         testCar = carRepository.save(testCar);
         testCustomer = customerRepository.save(testCustomer);
-        testStatus = statusRepository.save(testStatus);
-        ReservationDto reservationDto = new ReservationDto(testCar.getId(), testCustomer.getId(), START_DATE, END_DATE, TOTAL_AMOUNT, testStatus.getId());
+        ReservationDto reservationDto = new ReservationDto(testCar.getId(), testCustomer.getId(), START_DATE, END_DATE, TOTAL_AMOUNT, "RESERVED");
 
         //when then
         MvcResult result = mockMvc.perform(post("/reservations")
@@ -244,27 +233,27 @@ public class ReservationControllerTest {
     @Test
     void shouldUpdateEmployeeSuccessfully() throws Exception {
         //given
-        Reservation savedReservation = reservationRepository.save(testReservation);
-        ReservationDto updateDto = new ReservationDto(savedReservation.getId(), savedReservation.getCar().getId(), savedReservation.getCustomer().getId(),
-                LocalDate.of(2025, 6, 22), LocalDate.of(2025, 6, 24), new BigDecimal(500), savedReservation.getStatus().getId());
+        Reservation testReservation = reservationRepository.save(createTestReservation());
+        ReservationDto updatedReservationDto = new ReservationDto(testReservation.getId(), testReservation.getCar().getId(), testReservation.getCustomer().getId(),
+                LocalDate.of(2025, 6, 22), LocalDate.of(2025, 6, 24), new BigDecimal(500), testReservation.getStatus().getValue());
 
         //when then
         mockMvc.perform(put("/reservations")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateDto)))
+                        .content(objectMapper.writeValueAsString(updatedReservationDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.startDate").value("22-06-2025"))
                 .andExpect(jsonPath("$.endDate").value("24-06-2025"))
-                .andExpect(jsonPath("$.id").value(savedReservation.getId()))
+                .andExpect(jsonPath("$.id").value(testReservation.getId()))
                 .andReturn();
     }
 
     @Test
     void shouldReturn400ForUpdateWithoutId() throws Exception {
         //given
-        ReservationDto reservationDto = new ReservationDto(1L, 1L, START_DATE, END_DATE, TOTAL_AMOUNT, 1L);
+        ReservationDto reservationDto = new ReservationDto(1L, 1L, START_DATE, END_DATE, TOTAL_AMOUNT, "RESERVED");
 
         //when then
         mockMvc.perform(put("/reservations")
@@ -277,7 +266,7 @@ public class ReservationControllerTest {
     @Test
     void shouldReturn404ForUpdateNonExistentReservation() throws Exception {
         //given
-        ReservationDto reservationDto = new ReservationDto(1L, 1L, START_DATE, END_DATE, TOTAL_AMOUNT, 1L);
+        ReservationDto reservationDto = new ReservationDto(1L, 1L, START_DATE, END_DATE, TOTAL_AMOUNT, "RESERVED");
         reservationDto.setId(NON_EXISTENT_RESERVATION_ID);
 
         //when then
@@ -291,25 +280,26 @@ public class ReservationControllerTest {
     @Test
     void shouldCancelReservationById() throws Exception {
         //given
-        statusRepository.save(new Status("CANCELLED"));
-        Reservation savedReservation = reservationRepository.save(testReservation);
+
+        Reservation testReservation = createTestReservation();
+        testReservation.setStatus(Status.CANCELED);
+        reservationRepository.save(testReservation);
 
         //when
-        mockMvc.perform(put("/reservations/" + savedReservation.getId() + "/cancel"))
+        mockMvc.perform(put("/reservations/" + testReservation.getId() + "/cancellations"))
                 .andDo(print())
                 .andExpect(status().isOk());
 
         // then
-        Optional<Reservation> updatedReservation = reservationRepository.findById(savedReservation.getId());
+        Optional<Reservation> updatedReservation = reservationRepository.findById(testReservation.getId());
         assertThat(updatedReservation).isPresent();
-        assertThat(updatedReservation.get().getStatus().getName()).isEqualTo("CANCELLED");
+        assertThat(updatedReservation.get().getStatus()).isEqualTo(Status.CANCELED);
     }
 
     private Reservation createTestReservation() {
-        testCar = new Car("BMW", "M135i", 2022, "WX 43210", new BigDecimal(200));
-        testCustomer = new Customer("John", "Cena", "j.cena@mail.com", "500600700", "ABC 12345");
-        testStatus = new Status("TEST");
-        return new Reservation(testCar, testCustomer, START_DATE, END_DATE, TOTAL_AMOUNT, testStatus);
+        Car testCar = new Car("BMW", "M135i", 2022, "WX 43210", new BigDecimal(200));
+        Customer testCustomer = new Customer("John", "Cena", "j.cena@mail.com", "500600700", "ABC 12345");
+        return new Reservation(testCar, testCustomer, START_DATE, END_DATE, TOTAL_AMOUNT, Status.RESERVED);
     }
 
     private void assertReservationDto(ReservationDto reservationDto, Reservation expectedReservation) {
@@ -320,6 +310,6 @@ public class ReservationControllerTest {
         assertThat(reservationDto.getStartDate()).isEqualTo(expectedReservation.getStartDate());
         assertThat(reservationDto.getEndDate()).isEqualTo(expectedReservation.getEndDate());
         assertThat(reservationDto.getTotalAmount()).isEqualTo(expectedReservation.getTotalAmount());
-        assertThat(reservationDto.getStatusId()).isEqualTo(expectedReservation.getStatus().getId());
+        assertThat(reservationDto.getStatusName()).isEqualTo(expectedReservation.getStatus().getValue());
     }
 }

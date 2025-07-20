@@ -11,7 +11,7 @@ public class UniqueRegistrationNumberValidator implements ConstraintValidator<Un
 
     @Override
     public boolean isValid(String registration, ConstraintValidatorContext ctx) {
-        if (registration == null) return true;
+        if (registration == null || registration.isBlank()) return true;
         return !carRepository.existsByRegistrationNumber(registration);
     }
 

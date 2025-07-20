@@ -174,7 +174,6 @@
                         <exclude>pl/kurs/entity/*</exclude>
                         <exclude>pl/kurs/exception/*</exclude>
                         <exclude>pl/kurs/postman_collections/*</exclude>
-                        <exclude>pl/kurs/validation/*</exclude>
                         <exclude>pl/kurs/Application.class</exclude>
                     </excludes>
                 </configuration>

@@ -1,6 +1,5 @@
 package pl.kurs.mapper;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import pl.kurs.dto.ReservationDto;
@@ -16,41 +15,31 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReservationMapperTest {
-    private ReservationMapper reservationMapper;
-    private Reservation sampleReservation;
-    private ReservationDto sampleReservationDto;
-
-    @BeforeEach
-    void setUp() {
-        reservationMapper = Mappers.getMapper(ReservationMapper.class);
-        Car car = new Car();
-        car.setId(1L);
-        Customer customer = new Customer();
-        customer.setId(1L);
-        Status status = new Status();
-        status.setId(1L);
-
-        sampleReservation = new Reservation(car, customer, LocalDate.of(2025, 1, 20),
-                LocalDate.of(2025,1,25), new BigDecimal(1500), status);
-        sampleReservationDto = new ReservationDto(1L, 1L, LocalDate.of(2025, 1, 20),
-                LocalDate.of(2025,1,25), new BigDecimal(1500), 1L);
-    }
+    private static final LocalDate FROM = LocalDate.of(2025, 7, 1);
+    private static final LocalDate TO = LocalDate.of(2025, 7, 10);
+    private final ReservationMapper reservationMapper= Mappers.getMapper(ReservationMapper.class);
 
     @Test
     void shouldMapEntityToDto() {
+        //given
+        Reservation testReservation = createTestReservation();
+        ReservationDto testReservationDto = createTestReservationDto();
+
         //when
-        ReservationDto dto = reservationMapper.entityToDto(sampleReservation);
+        ReservationDto dto = reservationMapper.entityToDto(testReservation);
 
         //then
         assertThat(dto)
                 .usingRecursiveComparison()
-                .isEqualTo(sampleReservationDto);
+                .isEqualTo(testReservationDto);
     }
 
     @Test
     void shouldMapEntityListToDtoList() {
         //given
-        List<Reservation> reservations = List.of(sampleReservation);
+        Reservation testReservation = createTestReservation();
+        ReservationDto testReservationDto = createTestReservationDto();
+        List<Reservation> reservations = List.of(testReservation);
 
         //when
         List<ReservationDto> dtos = reservationMapper.entitiesToDtos(reservations);
@@ -59,13 +48,15 @@ public class ReservationMapperTest {
         assertThat(dtos).hasSize(1);
         assertThat(dtos.getFirst())
                 .usingRecursiveComparison()
-                .isEqualTo(sampleReservationDto);
+                .isEqualTo(testReservationDto);
     }
 
     @Test
     void shouldMapDtoToEntity() {
         //when
-        Reservation entity = reservationMapper.dtoToEntity(sampleReservationDto);
+        Reservation testReservation = createTestReservation();
+        ReservationDto testReservationDto = createTestReservationDto();
+        Reservation entity = reservationMapper.dtoToEntity(testReservationDto);
 
         //then
         assertThat(entity)
@@ -73,17 +64,19 @@ public class ReservationMapperTest {
                 .ignoringFields("car")
                 .ignoringFields("customer")
                 .ignoringFields("status")
-                .isEqualTo(sampleReservation);
+                .isEqualTo(testReservation);
     }
 
     @Test
     void shouldMapDtoToEntityWithId() {
         //given
-        sampleReservationDto.setId(1L);
-        sampleReservation.setId(1L);
+        Reservation testReservation = createTestReservation();
+        testReservation.setId(1L);
+        ReservationDto testReservationDto = createTestReservationDto();
+        testReservationDto.setId(1L);
 
         //when
-        Reservation entity = reservationMapper.dtoToEntityWithId(sampleReservationDto);
+        Reservation entity = reservationMapper.dtoToEntityWithId(testReservationDto);
 
         //then
         assertThat(entity.getId()).isEqualTo(1L);
@@ -92,23 +85,22 @@ public class ReservationMapperTest {
                 .ignoringFields("car")
                 .ignoringFields("customer")
                 .ignoringFields("status")
-                .isEqualTo(sampleReservation);
+                .isEqualTo(testReservation);
     }
 
     @Test
-    void shouldReturnNullCarCustomerStatusIdsWhenFieldsAreNull() {
+    void shouldReturnNullCarCustomerStatusWhenFieldsAreNull() {
         //given
-        Reservation reservation = new Reservation(null, null, LocalDate.of(2025,5,5),
-                LocalDate.of(2025,5,7), new BigDecimal(600), null);
-        reservation.setId(1L);
+        Reservation testReservation = new Reservation(null, null, FROM, TO, new BigDecimal(600), null);
+        testReservation.setId(1L);
 
         //when
-        ReservationDto dto = reservationMapper.entityToDto(reservation);
+        ReservationDto dto = reservationMapper.entityToDto(testReservation);
 
         //then
         assertThat(dto.getCarId()).isNull();
         assertThat(dto.getCustomerId()).isNull();
-        assertThat(dto.getStatusId()).isNull();
+        assertThat(dto.getStatusName()).isNull();
         assertThat(dto.getId()).isEqualTo(1L);
         assertThat(dto.getTotalAmount()).isEqualTo(new BigDecimal(600));
     }
@@ -135,6 +127,18 @@ public class ReservationMapperTest {
     void shouldReturnEmptyListWhenEntitiesToDtosGivenNull() {
         //when then
         assertThat(reservationMapper.entitiesToDtos(null)).isNull();
+    }
+
+    private Reservation createTestReservation() {
+        Car car = new Car();
+        car.setId(1L);
+        Customer customer = new Customer();
+        customer.setId(1L);
+        return new Reservation(car, customer, FROM, TO, new BigDecimal(1500), Status.RESERVED);
+    }
+
+    private ReservationDto createTestReservationDto() {
+        return new ReservationDto(1L, 1L, FROM, TO, new BigDecimal(1500), "RESERVED");
     }
 
 }

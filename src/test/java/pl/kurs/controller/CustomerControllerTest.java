@@ -13,7 +13,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.kurs.dto.CustomerDto;
-import pl.kurs.dto.CustomerDtoList;
 import pl.kurs.entity.Customer;
 import pl.kurs.repository.CustomerRepository;
 
@@ -146,23 +145,23 @@ public class CustomerControllerTest {
     }
 
     @Test
-    void shouldReturnCustomersListAsXml() throws Exception {
+    void shouldReturnCustomersPageAsXml() throws Exception {
         //given
         customerRepository.save(testCustomer);
         customerRepository.save(new Customer("Johny", "Rambo", "j.rambo@mail.com", "600500400", "DEF 67890"));
 
         //when then
-        MvcResult result = mockMvc.perform(get("/customers")
+        mockMvc.perform(get("/customers")
                         .accept(MediaType.APPLICATION_XML))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/xml"))
+                .andExpect(xpath("count(/PageImpl/content/content)").number(2.0))
+                .andExpect(xpath("/PageImpl/page/totalElements").number(2.0))
+                .andExpect(xpath("/PageImpl/page/number").number(0.0))
+                .andExpect(xpath("/PageImpl/page/size").number(10.0))
+                .andExpect(xpath("/PageImpl/page/totalPages").number(1.0))
                 .andReturn();
-
-        //then
-        XmlMapper xmlMapper = new XmlMapper();
-        CustomerDtoList customerDtoList = xmlMapper.readValue(result.getResponse().getContentAsString(), CustomerDtoList.class);
-        assertThat(customerDtoList.getEntities()).hasSize(2);
     }
 
     @Test

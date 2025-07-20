@@ -1,6 +1,5 @@
 package pl.kurs.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,27 +32,19 @@ public class EmployeeServiceTest {
     private EmployeeRepository employeeRepositoryMock;
 
     @InjectMocks
-    private EmployeeService employeeServiceMock;
-
-    private Employee sampleEmployee;
-
-    @BeforeEach
-    void setUp() {
-        sampleEmployee = new Employee("Adam", "Smith", new Position("MECHANIC"), "600500400", "a.smith@gmail.com");
-        sampleEmployee.setId(1L);
-    }
+    private EmployeeService employeeService;
 
     @Test
     void shouldReturnEmployeeById() {
         //given
-        when(employeeRepositoryMock.findById(1L)).thenReturn(Optional.of(sampleEmployee));
+        Employee testEmployee = createTestEmployee();
+        when(employeeRepositoryMock.findById(1L)).thenReturn(Optional.of(testEmployee));
 
         //when
-        Employee result = employeeServiceMock.getEmployeeById(1L);
+        Employee result = employeeService.getEmployeeById(1L);
 
         //then
-        assertThat(result).isEqualTo(sampleEmployee);
-        verify(employeeRepositoryMock).findById(1L);
+        assertThat(result).isEqualTo(testEmployee);
     }
 
     @Test
@@ -62,7 +53,7 @@ public class EmployeeServiceTest {
         when(employeeRepositoryMock.findById(1L)).thenReturn(Optional.empty());
 
         //when then
-        assertThatThrownBy(() -> employeeServiceMock.getEmployeeById(1L))
+        assertThatThrownBy(() -> employeeService.getEmployeeById(1L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Employee not found with id: 1");
     }
@@ -70,57 +61,59 @@ public class EmployeeServiceTest {
     @Test
     void shouldReturnPagedEmployeesForGetAll() {
         //given
-        Page<Employee> page = new PageImpl<>(List.of(sampleEmployee));
+        Employee testEmployee = createTestEmployee();
+        Page<Employee> page = new PageImpl<>(List.of(testEmployee));
         when(employeeRepositoryMock.findAll(PageRequest.of(0, 2))).thenReturn(page);
 
         //when
-        Page<Employee> result = employeeServiceMock.getAll(0, 2);
+        Page<Employee> result = employeeService.getAll(0, 2);
 
         //then
-        assertThat(result.getContent()).containsExactly(sampleEmployee);
+        assertThat(result.getContent()).containsExactly(testEmployee);
     }
 
     @Test
     void shouldSaveEmployee() {
         //given
-        when(employeeRepositoryMock.save(sampleEmployee)).thenReturn(sampleEmployee);
+        Employee testEmployee = createTestEmployee();
+        when(employeeRepositoryMock.save(testEmployee)).thenReturn(testEmployee);
 
         //when
-        Employee result = employeeServiceMock.saveEmployee(sampleEmployee);
+        Employee result = employeeService.saveEmployee(testEmployee);
 
         // then
-        assertThat(result).isEqualTo(sampleEmployee);
-        verify(employeeRepositoryMock).save(sampleEmployee);
+        assertThat(result).isEqualTo(testEmployee);
     }
 
     @Test
     void shouldUpdateEmployee() {
         //given
-        Employee incoming = new Employee("Jane", "Smith", new Position("CEO"), "654321000", "j.smith@gmail.com");
-        incoming.setId(1L);
+        Employee testEmployee = createTestEmployee();
+        Employee incomingEmployee = new Employee("Jane", "Smith", new Position("CEO"), "654321000", "j.smith@gmail.com");
+        incomingEmployee.setId(1L);
 
-        when(employeeRepositoryMock.findById(1L)).thenReturn(Optional.of(sampleEmployee));
+        when(employeeRepositoryMock.findById(1L)).thenReturn(Optional.of(testEmployee));
         when(employeeRepositoryMock.save(any(Employee.class))).thenAnswer(inv -> inv.getArgument(0));
 
         //when
-        Employee result = employeeServiceMock.updateEmployee(incoming);
+        Employee result = employeeService.updateEmployee(incomingEmployee);
 
         //then
-        assertThat(result.getFirstName()).isEqualTo("Jane");
-        assertThat(result.getLastName()).isEqualTo("Smith");
-        assertThat(result.getPosition().getName()).isEqualTo("CEO");
-        assertThat(result.getPhoneNumber()).isEqualTo("654321000");
-        assertThat(result.getEmail()).isEqualTo("j.smith@gmail.com");
-        verify(employeeRepositoryMock).save(sampleEmployee);
+        assertThat(result.getFirstName()).isEqualTo(incomingEmployee.getFirstName());
+        assertThat(result.getLastName()).isEqualTo(incomingEmployee.getLastName());
+        assertThat(result.getPosition().getName()).isEqualTo(incomingEmployee.getPosition().getName());
+        assertThat(result.getPhoneNumber()).isEqualTo(incomingEmployee.getPhoneNumber());
+        assertThat(result.getEmail()).isEqualTo(incomingEmployee.getEmail());
     }
 
     @Test
     void shouldThrowWhenUpdatingEmployeeNotFound() {
         //given
+        Employee testEmployee = createTestEmployee();
         when(employeeRepositoryMock.findById(1L)).thenReturn(Optional.empty());
 
         //when then
-        assertThatThrownBy(() -> employeeServiceMock.updateEmployee(sampleEmployee))
+        assertThatThrownBy(() -> employeeService.updateEmployee(testEmployee))
                 .isInstanceOf(DataNotFoundException.class)
                 .hasMessageContaining("Employee with id: 1 not found");
     }
@@ -128,7 +121,7 @@ public class EmployeeServiceTest {
     @Test
     void shouldDeleteEmployeeById() {
         //when
-        employeeServiceMock.deleteEmployeeById(1L);
+        employeeService.deleteEmployeeById(1L);
 
         //then
         verify(employeeRepositoryMock).deleteById(1L);
@@ -137,18 +130,25 @@ public class EmployeeServiceTest {
     @Test
     void shouldReturnEmployeesByFirstNameAndLastNameAndPosition() {
         //given
-        Page<Employee> page = new PageImpl<>(List.of(sampleEmployee));
+        Employee testEmployee = createTestEmployee();
+        Page<Employee> page = new PageImpl<>(List.of(testEmployee));
         when(employeeRepositoryMock.findAllByFirstNameAndLastNameAndPosition(
                 eq("Jan"), eq("Kowalski"), eq("MANAGER"), any(Pageable.class)))
                 .thenReturn(page);
 
         //when
-        Page<Employee> result = employeeServiceMock.getByFirstNameAndLastNameAndPosition("Jan", "Kowalski", "MANAGER", 0, 10);
+        Page<Employee> result = employeeService.getByFirstNameAndLastNameAndPosition("Jan", "Kowalski", "MANAGER", 0, 10);
 
         //then
-        assertThat(result.getContent()).containsExactly(sampleEmployee);
+        assertThat(result.getContent()).containsExactly(testEmployee);
         verify(employeeRepositoryMock).findAllByFirstNameAndLastNameAndPosition(
-                eq("Jan"), eq("Kowalski"), eq("MANAGER"), eq(PageRequest.of(0,10)));
+                eq("Jan"), eq("Kowalski"), eq("MANAGER"), eq(PageRequest.of(0, 10)));
+    }
+
+    private Employee createTestEmployee() {
+        Employee employee = new Employee("Adam", "Smith", new Position("MECHANIC"), "600500400", "a.smith@gmail.com");
+        employee.setId(1L);
+        return employee;
     }
 
 }

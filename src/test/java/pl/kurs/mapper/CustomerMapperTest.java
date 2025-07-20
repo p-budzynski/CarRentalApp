@@ -1,6 +1,5 @@
 package pl.kurs.mapper;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import pl.kurs.dto.CustomerDto;
@@ -11,33 +10,29 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CustomerMapperTest {
-    private CustomerMapper customerMapper;
-    private Customer sampleCustomer;
-    private CustomerDto sampleCustomerDto;
-
-    @BeforeEach
-    void setUp() {
-        customerMapper = Mappers.getMapper(CustomerMapper.class);
-
-        sampleCustomer = new Customer("Anna", "Mała", "a.mala@gmail.com", "521522523", "WXX 47215");
-        sampleCustomerDto = new CustomerDto("Anna", "Mała", "a.mala@gmail.com", "521522523", "WXX 47215");
-    }
+    private final CustomerMapper customerMapper = Mappers.getMapper(CustomerMapper.class);
 
     @Test
     void shouldMapEntityToDto() {
+        //given
+        Customer testCustomer = createTestCustomer();
+        CustomerDto testCustomerDto = createTestCustomerDto();
+
         //when
-        CustomerDto dto = customerMapper.entityToDto(sampleCustomer);
+        CustomerDto dto = customerMapper.entityToDto(testCustomer);
 
         //then
         assertThat(dto)
                 .usingRecursiveComparison()
-                .isEqualTo(sampleCustomerDto);
+                .isEqualTo(testCustomerDto);
     }
 
     @Test
     void shouldMapEntityListToDtoList() {
         //given
-        List<Customer> customers = List.of(sampleCustomer);
+        Customer testCustomer = createTestCustomer();
+        CustomerDto testCustomerDto = createTestCustomerDto();
+        List<Customer> customers = List.of(testCustomer);
 
         //when
         List<CustomerDto> dtos = customerMapper.entitiesToDtos(customers);
@@ -46,34 +41,38 @@ public class CustomerMapperTest {
         assertThat(dtos).hasSize(1);
         assertThat(dtos.getFirst())
                 .usingRecursiveComparison()
-                .isEqualTo(sampleCustomerDto);
+                .isEqualTo(testCustomerDto);
     }
 
     @Test
     void shouldMapDtoToEntity() {
         //when
-        Customer entity = customerMapper.dtoToEntity(sampleCustomerDto);
+        Customer testCustomer = createTestCustomer();
+        CustomerDto testCustomerDto = createTestCustomerDto();
+        Customer entity = customerMapper.dtoToEntity(testCustomerDto);
 
         //then
         assertThat(entity)
                 .usingRecursiveComparison()
-                .isEqualTo(sampleCustomer);
+                .isEqualTo(testCustomer);
     }
 
     @Test
     void shouldMapDtoToEntityWithId() {
         //given
-        sampleCustomerDto.setId(1L);
-        sampleCustomer.setId(1L);
+        Customer testCustomer = createTestCustomer();
+        testCustomer.setId(1L);
+        CustomerDto testCustomerDto = createTestCustomerDto();
+        testCustomerDto.setId(1L);
 
         //when
-        Customer entity = customerMapper.dtoToEntityWithId(sampleCustomerDto);
+        Customer entity = customerMapper.dtoToEntityWithId(testCustomerDto);
 
         //then
         assertThat(entity.getId()).isEqualTo(1L);
         assertThat(entity)
                 .usingRecursiveComparison()
-                .isEqualTo(sampleCustomer);
+                .isEqualTo(testCustomer);
     }
 
     @Test
@@ -98,6 +97,14 @@ public class CustomerMapperTest {
     void shouldReturnEmptyListWhenEntitiesToDtosGivenNull() {
         //when then
         assertThat(customerMapper.entitiesToDtos(null)).isNull();
+    }
+
+    private Customer createTestCustomer() {
+        return new Customer("Anna", "Mała", "a.mala@gmail.com", "521522523", "WXX 47215");
+    }
+
+    private CustomerDto createTestCustomerDto() {
+        return new CustomerDto("Anna", "Mała", "a.mala@gmail.com", "521522523", "WXX 47215");
     }
 
 }

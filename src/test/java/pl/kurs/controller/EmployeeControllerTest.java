@@ -3,18 +3,16 @@ package pl.kurs.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.event.annotation.BeforeTestMethod;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.kurs.dto.EmployeeDto;
-import pl.kurs.dto.EmployeeDtoList;
-import pl.kurs.entity.Customer;
 import pl.kurs.entity.Employee;
 import pl.kurs.entity.Position;
 import pl.kurs.repository.EmployeeRepository;
@@ -37,6 +35,9 @@ public class EmployeeControllerTest {
     private static final String E_MAIL = "a.wielka@mail.com";
     private static final String POSITION_NAME = "Receptionist";
     private static final long NON_EXISTENT_EMPLOYEE_ID = 999L;
+    private final Position receptionist = new Position("Receptionist");
+    private final Position mechanic = new Position("Mechanic");
+    private final Position accountant = new Position("Accountant");
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,21 +51,18 @@ public class EmployeeControllerTest {
     @Autowired
     private PositionRepository positionRepository;
 
-    private Employee testEmployee;
-    private Position testPosition;
-
-    @BeforeEach
+    @BeforeTestMethod
     void setUp() {
-        testEmployee = createTestEmployee();
+        saveTestPositions();
     }
 
     @Test
     void shouldReturnEmployeeAsXmlForGetById() throws Exception {
         //given
-        Employee savedEmployee = employeeRepository.save(createTestEmployee());
+        Employee testEmployee = employeeRepository.save(createTestEmployee());
 
         //when
-        MvcResult mvcResult = mockMvc.perform(get("/employees/" + savedEmployee.getId())
+        MvcResult mvcResult = mockMvc.perform(get("/employees/" + testEmployee.getId())
                         .accept(MediaType.APPLICATION_XML))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -74,16 +72,16 @@ public class EmployeeControllerTest {
         //then
         XmlMapper xmlMapper = new XmlMapper();
         EmployeeDto employeeDto = xmlMapper.readValue(mvcResult.getResponse().getContentAsString(), EmployeeDto.class);
-        assertEmployeeDto(employeeDto, savedEmployee);
+        assertEmployeeDto(employeeDto, testEmployee);
     }
 
     @Test
     void shouldReturnEmployeeAsJsonForGetById() throws Exception {
         //given
-        Employee savedEmployee = employeeRepository.save(createTestEmployee());
+        Employee testEmployee = employeeRepository.save(createTestEmployee());
 
         //when
-        MvcResult mvcResult = mockMvc.perform(get("/employees/" + savedEmployee.getId())
+        MvcResult mvcResult = mockMvc.perform(get("/employees/" + testEmployee.getId())
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -92,7 +90,7 @@ public class EmployeeControllerTest {
 
         //then
         EmployeeDto employeeDto = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), EmployeeDto.class);
-        assertEmployeeDto(employeeDto, savedEmployee);
+        assertEmployeeDto(employeeDto, testEmployee);
     }
 
     @Test
@@ -135,7 +133,7 @@ public class EmployeeControllerTest {
     void shouldReturnEmployeePageAsJson() throws Exception {
         //given
         employeeRepository.save(createTestEmployee());
-        employeeRepository.save(new Employee("Katarzyna", "Mała", testPosition, "505606707", "k.mala@mail.com"));
+        employeeRepository.save(new Employee("Katarzyna", "Mała", mechanic, "505606707", "k.mala@mail.com"));
 
         //when then
         mockMvc.perform(get("/employees")
@@ -153,35 +151,36 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    void shouldReturnEmployeeListAsXml() throws Exception {
+    void shouldReturnEmployeePageAsXml() throws Exception {
         //given
         employeeRepository.save(createTestEmployee());
-        employeeRepository.save(new Employee("Katarzyna", "Mała", testPosition, "505606707", "k.mala@mail.com"));
+        employeeRepository.save(new Employee("Katarzyna", "Mała", receptionist, "505606707", "k.mala@mail.com"));
 
-        //when
-        MvcResult result = mockMvc.perform(get("/employees")
+        //when then
+        mockMvc.perform(get("/employees")
                         .accept(MediaType.APPLICATION_XML))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/xml"))
+                .andExpect(xpath("count(/PageImpl/content/content)").number(2.0))
+                .andExpect(xpath("/PageImpl/page/totalElements").number(2.0))
+                .andExpect(xpath("/PageImpl/page/number").number(0.0))
+                .andExpect(xpath("/PageImpl/page/size").number(10.0))
+                .andExpect(xpath("/PageImpl/page/totalPages").number(1.0))
                 .andReturn();
-
-        //then
-        XmlMapper xmlMapper = new XmlMapper();
-        EmployeeDtoList employeeDtoList = xmlMapper.readValue(result.getResponse().getContentAsString(), EmployeeDtoList.class);
-        assertThat(employeeDtoList.getEntities()).hasSize(2);
     }
 
     @Test
     void shouldCreateEmployeeSuccessfully() throws Exception {
         //given
-        testPosition = positionRepository.save(testPosition);
-        EmployeeDto employeeDto = new EmployeeDto(FIRST_NAME, LAST_NAME, testPosition.getId(), PHONE_NUMBER, E_MAIL);
+        Position testPosition = positionRepository.save(new Position("position1"));
+        EmployeeDto testEmployeeDto = createTestEmployeeDto();
+        testEmployeeDto.setPositionId(testPosition.getId());
 
         //when then
         MvcResult result = mockMvc.perform(post("/employees")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(employeeDto)))
+                        .content(objectMapper.writeValueAsString(testEmployeeDto)))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Content-Type", "application/json"))
@@ -221,19 +220,19 @@ public class EmployeeControllerTest {
     @Test
     void shouldUpdateEmployeeSuccessfully() throws Exception {
         //given
-        Employee savedEmployee = employeeRepository.save(testEmployee);
-        EmployeeDto updateDto = new EmployeeDto(savedEmployee.getId(), "Ewa", "Konewa", savedEmployee.getPosition().getId(), "070088800", "e.konewa@mail.com");
+        Employee testEmployee = employeeRepository.save(createTestEmployee());
+        EmployeeDto testEmployeeDto = new EmployeeDto(testEmployee.getId(), "Ewa", "Konewa", testEmployee.getPosition().getId(), "070088800", "e.konewa@mail.com");
 
         //when then
         mockMvc.perform(put("/employees")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateDto)))
+                        .content(objectMapper.writeValueAsString(testEmployeeDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.firstName").value("Ewa"))
-                .andExpect(jsonPath("$.lastName").value("Konewa"))
-                .andExpect(jsonPath("$.id").value(savedEmployee.getId()))
+                .andExpect(jsonPath("$.firstName").value(testEmployeeDto.getFirstName()))
+                .andExpect(jsonPath("$.lastName").value(testEmployeeDto.getLastName()))
+                .andExpect(jsonPath("$.id").value(testEmployee.getId()))
                 .andReturn();
     }
 
@@ -253,13 +252,13 @@ public class EmployeeControllerTest {
     @Test
     void shouldReturn404ForUpdateNonExistentEmployee() throws Exception {
         //given
-        EmployeeDto employeeDto = new EmployeeDto("Ewa", "Konewa", 1L, "070088800", "e.konewa@mail.com");
-        employeeDto.setId(NON_EXISTENT_EMPLOYEE_ID);
+        EmployeeDto testEmployeeDto = createTestEmployeeDto();
+        testEmployeeDto.setId(NON_EXISTENT_EMPLOYEE_ID);
 
         //when then
         mockMvc.perform(put("/employees")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(employeeDto)))
+                        .content(objectMapper.writeValueAsString(testEmployeeDto)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -267,6 +266,7 @@ public class EmployeeControllerTest {
     @Test
     void shouldDeleteCarSuccessfully() throws Exception {
         //given
+        Employee testEmployee = createTestEmployee();
         Employee savedEmployee = employeeRepository.save(testEmployee);
 
 
@@ -282,9 +282,10 @@ public class EmployeeControllerTest {
     @Test
     void shouldSearchEmployeeByFirstNameAndLastName() throws Exception {
         //given
+        Employee testEmployee = createTestEmployee();
         employeeRepository.save(testEmployee);
-        employeeRepository.save(new Employee("Johny", "Rambo", testPosition, "600500400", "j.rambo@mail.com"));
-        employeeRepository.save(new Employee("Bruce", "Lee", testPosition, "800500400", "b.lee@mail.com"));
+        employeeRepository.save(new Employee("Johny", "Rambo", accountant, "600500400", "j.rambo@mail.com"));
+        employeeRepository.save(new Employee("Bruce", "Lee", mechanic, "800500400", "b.lee@mail.com"));
 
         //when then
         mockMvc.perform(get("/employees/search")
@@ -301,25 +302,35 @@ public class EmployeeControllerTest {
     @Test
     void shouldSearchEmployeeByPosition() throws Exception {
         //given
+        Employee testEmployee = createTestEmployee();
         employeeRepository.save(testEmployee);
-        employeeRepository.save(new Employee("Johny", "Rambo", new Position("Manager"), "600500400", "j.rambo@mail.com"));
-        employeeRepository.save(new Employee("Bruce", "Lee", new Position("Mechanic"), "800500400", "b.lee@mail.com"));
+        employeeRepository.save(new Employee("Johny", "Rambo", accountant, "600500400", "j.rambo@mail.com"));
+        employeeRepository.save(new Employee("Bruce", "Lee", mechanic, "800500400", "b.lee@mail.com"));
 
         //when then
         mockMvc.perform(get("/employees/search")
-                        .param("position", testPosition.getName())
+                        .param("position", POSITION_NAME)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(1)))
                 .andExpect(jsonPath("$.content[0].firstName").value(FIRST_NAME))
                 .andExpect(jsonPath("$.content[0].lastName").value(LAST_NAME))
-                .andExpect(jsonPath("$.content[0].positionId").value(testPosition.getId()));
+                .andExpect(jsonPath("$.content[0].positionId").value(testEmployee.getPosition().getId()));
     }
 
     private Employee createTestEmployee() {
-        testPosition = new Position(POSITION_NAME);
-        return new Employee(FIRST_NAME, LAST_NAME, testPosition, PHONE_NUMBER, E_MAIL);
+        return new Employee(FIRST_NAME, LAST_NAME, receptionist, PHONE_NUMBER, E_MAIL);
+    }
+
+    private EmployeeDto createTestEmployeeDto() {
+        return new EmployeeDto(FIRST_NAME, LAST_NAME, 1L, PHONE_NUMBER, E_MAIL);
+    }
+
+    private void saveTestPositions() {
+        positionRepository.save(receptionist);
+        positionRepository.save(mechanic);
+        positionRepository.save(accountant);
     }
 
     private void assertEmployeeDto(EmployeeDto employeeDto, Employee expectedEmployee) {

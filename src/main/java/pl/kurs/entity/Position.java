@@ -19,6 +19,11 @@ public class Position {
     @Column(nullable = false, unique = true)
     private String name;
 
+    public Position(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     public Position(String name) {
         this.name = name;
     }

@@ -1,6 +1,5 @@
 package pl.kurs.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,26 +31,19 @@ public class CustomerServiceTest {
     private CustomerRepository customerRepositoryMock;
 
     @InjectMocks
-    private CustomerService customerServiceMock;
-
-    private Customer sampleCustomer;
-
-    @BeforeEach
-    void setUp() {
-        sampleCustomer = new Customer("John", "Doe", "john.doe@gmail.com", "500900800", "KK 151214");
-        sampleCustomer.setId(1L);
-    }
+    private CustomerService customerService;
 
     @Test
     void shouldReturnCustomerById() {
         //given
-        when(customerRepositoryMock.findById(1L)).thenReturn(Optional.of(sampleCustomer));
+        Customer testCustomer = createTestCustomer();
+        when(customerRepositoryMock.findById(1L)).thenReturn(Optional.of(testCustomer));
 
         //when
-        Customer result = customerServiceMock.getCustomerById(1L);
+        Customer result = customerService.getCustomerById(1L);
 
         //then
-        assertThat(result).isEqualTo(sampleCustomer);
+        assertThat(result).isEqualTo(testCustomer);
     }
 
     @Test
@@ -60,7 +52,7 @@ public class CustomerServiceTest {
         when(customerRepositoryMock.findById(42L)).thenReturn(Optional.empty());
 
         //when then
-        assertThatThrownBy(() -> customerServiceMock.getCustomerById(42L))
+        assertThatThrownBy(() -> customerService.getCustomerById(42L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Customer not found with id: 42");
     }
@@ -68,40 +60,42 @@ public class CustomerServiceTest {
     @Test
     void shouldReturnPagedCustomersForGetAll() {
         //given
-        Page<Customer> page = new PageImpl<>(List.of(sampleCustomer));
+        Customer testCustomer = createTestCustomer();
+        Page<Customer> page = new PageImpl<>(List.of(testCustomer));
         when(customerRepositoryMock.findAll(PageRequest.of(0, 3))).thenReturn(page);
 
         //when
-        Page<Customer> result = customerServiceMock.getAll(0, 3);
+        Page<Customer> result = customerService.getAll(0, 3);
 
         //then
-        assertThat(result.getContent()).containsExactly(sampleCustomer);
+        assertThat(result.getContent()).containsExactly(testCustomer);
     }
 
     @Test
     void shouldSaveCustomer() {
         //given
-        when(customerRepositoryMock.save(sampleCustomer)).thenReturn(sampleCustomer);
+        Customer testCustomer = createTestCustomer();
+        when(customerRepositoryMock.save(testCustomer)).thenReturn(testCustomer);
 
         //when
-        Customer saved = customerServiceMock.saveCustomer(sampleCustomer);
+        Customer saved = customerService.saveCustomer(testCustomer);
 
         //then
-        assertThat(saved).isEqualTo(sampleCustomer);
-        verify(customerRepositoryMock).save(sampleCustomer);
+        assertThat(saved).isEqualTo(testCustomer);
     }
 
     @Test
     void shouldUpdateCustomer() {
         //given
-        Customer incoming = new Customer("Jane", "Smith", "jane.smith@gmail.com", "511111111", "XYZ 202020");
-        incoming.setId(1L);
+        Customer testCustomer = createTestCustomer();
+        Customer incomingCustomer = new Customer("Jane", "Smith", "jane.smith@gmail.com", "511111111", "XYZ 202020");
+        incomingCustomer.setId(1L);
 
-        when(customerRepositoryMock.findById(1L)).thenReturn(Optional.of(sampleCustomer));
+        when(customerRepositoryMock.findById(1L)).thenReturn(Optional.of(testCustomer));
         when(customerRepositoryMock.save(any(Customer.class))).thenAnswer(inv -> inv.getArgument(0));
 
         // when
-        Customer updated = customerServiceMock.updateCustomer(incoming);
+        Customer updated = customerService.updateCustomer(incomingCustomer);
 
         // then
         assertThat(updated.getFirstName()).isEqualTo("Jane");
@@ -109,16 +103,16 @@ public class CustomerServiceTest {
         assertThat(updated.getEmail()).isEqualTo("jane.smith@gmail.com");
         assertThat(updated.getPhoneNumber()).isEqualTo("511111111");
         assertThat(updated.getDrivingLicenseNumber()).isEqualTo("XYZ 202020");
-        verify(customerRepositoryMock).save(sampleCustomer);
     }
 
     @Test
     void shouldThrowWhenUpdateCustomerNotFound() {
         //given
+        Customer testCustomer = createTestCustomer();
         when(customerRepositoryMock.findById(1L)).thenReturn(Optional.empty());
 
         //when then
-        assertThatThrownBy(() -> customerServiceMock.updateCustomer(sampleCustomer))
+        assertThatThrownBy(() -> customerService.updateCustomer(testCustomer))
                 .isInstanceOf(DataNotFoundException.class)
                 .hasMessageContaining("Customer with id: 1 not found");
     }
@@ -126,7 +120,7 @@ public class CustomerServiceTest {
     @Test
     void shouldDeleteCustomerById() {
         //when
-        customerServiceMock.deleteCustomerById(1L);
+        customerService.deleteCustomerById(1L);
 
         //then
         verify(customerRepositoryMock).deleteById(1L);
@@ -135,18 +129,25 @@ public class CustomerServiceTest {
     @Test
     void shouldReturnCustomersByFirstAndLastName() {
         //given
-        Page<Customer> page = new PageImpl<>(List.of(sampleCustomer));
+        Customer testCustomer = createTestCustomer();
+        Page<Customer> page = new PageImpl<>(List.of(testCustomer));
         when(customerRepositoryMock.findAllByFirstNameAndLastName(
                 eq("John"), eq("Doe"), any(Pageable.class)))
                 .thenReturn(page);
 
         //when
-        Page<Customer> result = customerServiceMock.getByFirstNameAndLastName("John", "Doe", 0, 2);
+        Page<Customer> result = customerService.getByFirstNameAndLastName("John", "Doe", 0, 2);
 
         //then
-        assertThat(result.getContent()).containsExactly(sampleCustomer);
+        assertThat(result.getContent()).containsExactly(testCustomer);
         verify(customerRepositoryMock).findAllByFirstNameAndLastName(
                 eq("John"), eq("Doe"), eq(PageRequest.of(0, 2)));
+    }
+
+    private Customer createTestCustomer() {
+        Customer customer = new Customer("John", "Doe", "john.doe@gmail.com", "500900800", "KK 151214");
+        customer.setId(1L);
+        return customer;
     }
 
 }

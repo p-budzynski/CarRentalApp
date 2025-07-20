@@ -1,6 +1,5 @@
 package pl.kurs.mapper;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import pl.kurs.dto.CarDto;
@@ -12,34 +11,29 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CarMapperTest {
-
-    private CarMapper carMapper;
-    private Car sampleCar;
-    private CarDto sampleCarDto;
-
-    @BeforeEach
-    void setUp() {
-        carMapper = Mappers.getMapper(CarMapper.class);
-
-        sampleCar = new Car("Toyota", "Corolla", 2024, "WX98765", new BigDecimal(150));
-        sampleCarDto = new CarDto("Toyota", "Corolla", 2024, "WX98765", new BigDecimal(150));
-    }
+    private final CarMapper carMapper = Mappers.getMapper(CarMapper.class);
 
     @Test
     void shouldMapEntityToDto() {
+        //given
+        Car testCar = createTestCar();
+        CarDto testCarDto = createTestCarDto();
+
         //when
-        CarDto dto = carMapper.entityToDto(sampleCar);
+        CarDto dto = carMapper.entityToDto(testCar);
 
         //then
         assertThat(dto)
                 .usingRecursiveComparison()
-                .isEqualTo(sampleCarDto);
+                .isEqualTo(testCarDto);
     }
 
     @Test
     void shouldMapEntityListToDtoList() {
         //given
-        List<Car> cars = List.of(sampleCar);
+        Car testCar = createTestCar();
+        CarDto testCarDto = createTestCarDto();
+        List<Car> cars = List.of(testCar);
 
         //when
         List<CarDto> dtos = carMapper.entitiesToDtos(cars);
@@ -48,34 +42,40 @@ public class CarMapperTest {
         assertThat(dtos).hasSize(1);
         assertThat(dtos.getFirst())
                 .usingRecursiveComparison()
-                .isEqualTo(sampleCarDto);
+                .isEqualTo(testCarDto);
     }
 
     @Test
     void shouldMapDtoToEntity() {
+        //given
+        Car testCar = createTestCar();
+        CarDto testCarDto = createTestCarDto();
+
         //when
-        Car entity = carMapper.dtoToEntity(sampleCarDto);
+        Car entity = carMapper.dtoToEntity(testCarDto);
 
         //then
         assertThat(entity)
                 .usingRecursiveComparison()
-                .isEqualTo(sampleCar);
+                .isEqualTo(testCar);
     }
 
     @Test
     void shouldMapDtoToEntityWithId() {
         //given
-        sampleCarDto.setId(1L);
-        sampleCar.setId(1L);
+        Car testCar = createTestCar();
+        testCar.setId(1L);
+        CarDto testCarDto = createTestCarDto();
+        testCarDto.setId(1L);
 
         //when
-        Car entity = carMapper.dtoToEntityWithId(sampleCarDto);
+        Car entity = carMapper.dtoToEntityWithId(testCarDto);
 
         //then
         assertThat(entity.getId()).isEqualTo(1L);
         assertThat(entity)
                 .usingRecursiveComparison()
-                .isEqualTo(sampleCar);
+                .isEqualTo(testCar);
     }
 
     @Test
@@ -100,6 +100,14 @@ public class CarMapperTest {
     void shouldReturnEmptyListWhenEntitiesToDtosGivenNull() {
         //when then
         assertThat(carMapper.entitiesToDtos(null)).isNull();
+    }
+
+    private Car createTestCar() {
+        return new Car("Toyota", "Corolla", 2024, "WX98765", new BigDecimal(150));
+    }
+
+    private CarDto createTestCarDto() {
+        return new CarDto("Toyota", "Corolla", 2024, "WX98765", new BigDecimal(150));
     }
 
 }

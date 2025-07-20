@@ -3,7 +3,6 @@ package pl.kurs.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -13,7 +12,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.kurs.dto.CarDto;
-import pl.kurs.dto.CarDtoList;
 import pl.kurs.entity.Car;
 import pl.kurs.repository.CarRepository;
 
@@ -46,17 +44,10 @@ public class CarControllerTest {
     @Autowired
     private CarRepository carRepository;
 
-    private Car testCar;
-
-    @BeforeEach
-    void setup() {
-        testCar = createTestCar();
-    }
-
     @Test
     void shouldReturnCarAsXmlForGetById() throws Exception {
         //given
-        Car savedCar = carRepository.save(testCar);
+        Car savedCar = carRepository.save(createTestCar());
 
         //when
         MvcResult mvcResult = mockMvc.perform(get("/cars/" + savedCar.getId())
@@ -75,7 +66,7 @@ public class CarControllerTest {
     @Test
     void shouldReturnCarAsJsonForGetById() throws Exception {
         //given
-        Car savedCar = carRepository.save(testCar);
+        Car savedCar = carRepository.save(createTestCar());
 
         //when
         MvcResult mvcResult = mockMvc.perform(get("/cars/" + savedCar.getId())
@@ -129,7 +120,7 @@ public class CarControllerTest {
     @Test
     void shouldReturnCarsPageAsJson() throws Exception {
         //given
-        carRepository.save(testCar);
+        carRepository.save(createTestCar());
         carRepository.save(new Car("Audi", "A4", 2023, "WW 23456", new BigDecimal(600)));
 
         //when then
@@ -150,21 +141,21 @@ public class CarControllerTest {
     @Test
     void shouldReturnCarsListAsXml() throws Exception {
         //given
-        carRepository.save(testCar);
+        carRepository.save(createTestCar());
         carRepository.save(new Car("Audi", "A4", 2023, "WW 23456", new BigDecimal(600)));
 
         //when then
-        MvcResult result = mockMvc.perform(get("/cars")
+        mockMvc.perform(get("/cars")
                         .accept(MediaType.APPLICATION_XML))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/xml"))
+                .andExpect(xpath("count(/PageImpl/content/content)").number(2.0))
+                .andExpect(xpath("/PageImpl/page/totalElements").number(2.0))
+                .andExpect(xpath("/PageImpl/page/number").number(0.0))
+                .andExpect(xpath("/PageImpl/page/size").number(10.0))
+                .andExpect(xpath("/PageImpl/page/totalPages").number(1.0))
                 .andReturn();
-
-        //then
-        XmlMapper xmlMapper = new XmlMapper();
-        CarDtoList carDtoList = xmlMapper.readValue(result.getResponse().getContentAsString(), CarDtoList.class);
-        assertThat(carDtoList.getEntities()).hasSize(2);
     }
 
     @Test
@@ -215,7 +206,7 @@ public class CarControllerTest {
     @Test
     void shouldUpdateCarSuccessfully() throws Exception {
         //given
-        Car savedCar = carRepository.save(testCar);
+        Car savedCar = carRepository.save(createTestCar());
         CarDto updateDto = new CarDto(savedCar.getId(), "Mercedes", "S-Class", 2024, "WC 22222", new BigDecimal("1200"));
 
         //when then
@@ -261,7 +252,7 @@ public class CarControllerTest {
     @Test
     void shouldDeleteCarSuccessfully() throws Exception {
         //given
-        Car savedCar = carRepository.save(testCar);
+        Car savedCar = carRepository.save(createTestCar());
 
         //when then
         mockMvc.perform(delete("/cars/" + savedCar.getId()))
@@ -274,7 +265,7 @@ public class CarControllerTest {
     @Test
     void shouldSearchCarsByProducer() throws Exception {
         //given
-        carRepository.save(testCar);
+        carRepository.save(createTestCar());
         carRepository.save(new Car("Audi", "A4", 2023, "WW 23456", new BigDecimal("600")));
 
         //when then
@@ -291,7 +282,7 @@ public class CarControllerTest {
     @Test
     void shouldSearchCarsByProducerAndModel() throws Exception {
         //given
-        carRepository.save(testCar);
+        carRepository.save(createTestCar());
         carRepository.save(new Car("BMW", "X5", 2024, "WX 55555", new BigDecimal("1100")));
         carRepository.save(new Car("Audi", "A4", 2023, "WW 23456", new BigDecimal("600")));
 

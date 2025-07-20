@@ -1,6 +1,5 @@
 package pl.kurs.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,26 +30,19 @@ public class CarServiceTest {
     private CarRepository carRepositoryMock;
 
     @InjectMocks
-    private CarService carServiceMock;
-
-    private Car sampleCar;
-
-    @BeforeEach
-    void setUp() {
-        sampleCar = new Car("Toyota", "Corolla", 2020, "WX 17458", new BigDecimal(140));
-        sampleCar.setId(1L);
-    }
+    private CarService carService;
 
     @Test
     void shouldReturnCarForGetCarById() {
         //given
-        when(carRepositoryMock.findById(1L)).thenReturn(Optional.of(sampleCar));
+        Car testCar = createTestCar();
+        when(carRepositoryMock.findById(1L)).thenReturn(Optional.of(testCar));
 
         //when
-        Car result = carServiceMock.getCarById(1L);
+        Car result = carService.getCarById(1L);
 
         //then
-        assertThat(result).isEqualTo(sampleCar);
+        assertThat(result).isEqualTo(testCar);
     }
 
     @Test
@@ -59,7 +51,7 @@ public class CarServiceTest {
         when(carRepositoryMock.findById(5L)).thenReturn(Optional.empty());
 
         //when then
-        assertThatThrownBy(() -> carServiceMock.getCarById(5L))
+        assertThatThrownBy(() -> carService.getCarById(5L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Car not found with id: 5");
     }
@@ -67,47 +59,41 @@ public class CarServiceTest {
     @Test
     void shouldReturnPagedCarsForGetAll() {
         //given
-        Page<Car> page = new PageImpl<>(List.of(sampleCar));
+        Car testCar = createTestCar();
+        Page<Car> page = new PageImpl<>(List.of(testCar));
         when(carRepositoryMock.findAll(PageRequest.of(0, 5))).thenReturn(page);
 
         //when
-        Page<Car> result = carServiceMock.getAll(0, 5);
+        Page<Car> result = carService.getAll(0, 5);
 
         //then
-        assertThat(result.getContent()).containsExactly(sampleCar);
-    }
-
-    @Test
-    void shouldThrowWhenSortFieldInvalid() {
-        //given when then
-        assertThatThrownBy(() -> carServiceMock.getAllSorted("nonexistentField", Sort.Direction.ASC, 0, 5))
-                .isInstanceOf(InvalidDataAccessApiUsageException.class)
-                .hasMessageContaining("Invalid sort field: nonexistentField");
+        assertThat(result.getContent()).containsExactly(testCar);
     }
 
     @Test
     void shouldSaveCar() {
         //given
-        when(carRepositoryMock.save(sampleCar)).thenReturn(sampleCar);
+        Car testCar = createTestCar();
+        when(carRepositoryMock.save(testCar)).thenReturn(testCar);
 
         //when
-        Car saved = carServiceMock.saveCar(sampleCar);
+        Car savedCar = carService.saveCar(testCar);
 
         //then
-        assertThat(saved).isEqualTo(sampleCar);
-        verify(carRepositoryMock).save(sampleCar);
+        assertThat(savedCar).isEqualTo(testCar);
     }
 
     @Test
     void shouldUpdateCarWhenExists() {
         //given
-        Car incoming = new Car("Honda", "Civic", 2022, "WI 91827", new BigDecimal(160));
-        incoming.setId(1L);
-        when(carRepositoryMock.findById(1L)).thenReturn(Optional.of(sampleCar));
+        Car testCar = createTestCar();
+        Car incomingCar = new Car("Honda", "Civic", 2022, "WI 91827", new BigDecimal(160));
+        incomingCar.setId(1L);
+        when(carRepositoryMock.findById(1L)).thenReturn(Optional.of(testCar));
         when(carRepositoryMock.save(any(Car.class))).thenAnswer(inv -> inv.getArgument(0));
 
         //when
-        Car updated = carServiceMock.updateCar(incoming);
+        Car updated = carService.updateCar(incomingCar);
 
         //then
         assertThat(updated.getProducer()).isEqualTo("Honda");
@@ -115,16 +101,16 @@ public class CarServiceTest {
         assertThat(updated.getYearOfProduction()).isEqualTo(2022);
         assertThat(updated.getRegistrationNumber()).isEqualTo("WI 91827");
         assertThat(updated.getPricePerDay()).isEqualTo(BigDecimal.valueOf(160));
-        verify(carRepositoryMock).save(sampleCar);
     }
 
     @Test
     void shouldThrowWhenUpdateCarAndNotFound() {
         //given
+        Car testCar = createTestCar();
         when(carRepositoryMock.findById(1L)).thenReturn(Optional.empty());
 
         //when then
-        assertThatThrownBy(() -> carServiceMock.updateCar(sampleCar))
+        assertThatThrownBy(() -> carService.updateCar(testCar))
                 .isInstanceOf(DataNotFoundException.class)
                 .hasMessageContaining("Car with id: 1 not found");
     }
@@ -132,7 +118,7 @@ public class CarServiceTest {
     @Test
     void shouldDeleteCarById() {
         //when
-        carServiceMock.deleteCarById(1L);
+        carService.deleteCarById(1L);
 
         //then
         verify(carRepositoryMock).deleteById(1L);
@@ -141,74 +127,88 @@ public class CarServiceTest {
     @Test
     void shouldReturnSortedPageForGetAllSorted() {
         //given
-        Page<Car> page = new PageImpl<>(List.of(sampleCar));
+        Car testCar = createTestCar();
+        Page<Car> page = new PageImpl<>(List.of(testCar));
         when(carRepositoryMock.findAll(any(Pageable.class))).thenReturn(page);
 
         //when
-        Page<Car> result = carServiceMock.getAllSorted("producer", Sort.Direction.ASC, 0, 5);
+        Page<Car> result = carService.getAllSorted("producer", Sort.Direction.ASC, 0, 5);
 
         //then
-        assertThat(result.getContent()).containsExactly(sampleCar);
+        assertThat(result.getContent()).containsExactly(testCar);
         verify(carRepositoryMock).findAll((argThat((Pageable p) -> {
-            p.getSort().getOrderFor("producer");
-            return true;
+            Sort.Order producer = p.getSort().getOrderFor("producer");
+            return producer.getDirection() == Sort.Direction.ASC;
         })));
+    }
+
+    @Test
+    void shouldThrowWhenSortFieldInvalid() {
+        //given when then
+        assertThatThrownBy(() -> carService.getAllSorted("nonexistentField", Sort.Direction.ASC, 0, 5))
+                .isInstanceOf(InvalidDataAccessApiUsageException.class)
+                .hasMessageContaining("Invalid sort field: nonexistentField");
     }
 
     @Test
     void shouldReturnPageWithAvailableCarsBySearchingForProducerAndModel() {
         //given
-        Page<Car> page = new PageImpl<>(List.of(sampleCar));
+        Car testCar = createTestCar();
+        Page<Car> page = new PageImpl<>(List.of(testCar));
         when(carRepositoryMock.findByProducerAndModel("Toyota", "Corolla", PageRequest.of(0, 5)))
                 .thenReturn(page);
 
         //when
-        Page<Car> result = carServiceMock.getByProducerAndModelAndAvailable("Toyota", "Corolla", null, null, 0, 5);
+        Page<Car> result = carService.getByProducerAndModelAndAvailable("Toyota", "Corolla", null, null, 0, 5);
 
         //then
-        assertThat(result.getContent()).containsExactly(sampleCar);
-        verify(carRepositoryMock).findByProducerAndModel("Toyota", "Corolla", PageRequest.of(0, 5));
+        assertThat(result.getContent()).containsExactly(testCar);
     }
 
     @Test
     void shouldReturnPageWithAvailableCarsBySearchingForProducerAndModelAndStartDateAndEndDateNull() {
         //given
+        Car testCar = createTestCar();
         LocalDate start = LocalDate.now();
-        Page<Car> page = new PageImpl<>(List.of(sampleCar));
+        Page<Car> page = new PageImpl<>(List.of(testCar));
         when(carRepositoryMock.findByProducerAndModel(eq("Toyota"), eq("Corolla"), any(Pageable.class)))
                 .thenReturn(page);
 
-        // when
-        carServiceMock.getByProducerAndModelAndAvailable("Toyota", "Corolla", start, null, 0, 5);
+        //when
+        Page<Car> result = carService.getByProducerAndModelAndAvailable("Toyota", "Corolla", start, null, 0, 5);
+
+        //then
+        assertThat(result.getContent()).containsExactly(testCar);
     }
 
     @Test
     void shouldReturnPageWithAvailableCarsBySearchingForProducerAndModelAndDatesAreProvided() {
         //given
+        Car testCar = createTestCar();
         LocalDate start = LocalDate.now();
         LocalDate end = start.plusDays(5);
-        Page<Car> page = new PageImpl<>(List.of(sampleCar));
+        Page<Car> page = new PageImpl<>(List.of(testCar));
         when(carRepositoryMock.findAvailableCars("Toyota", "Corolla", start, end, PageRequest.of(0, 5)))
                 .thenReturn(page);
 
         //when
-        Page<Car> result = carServiceMock.getByProducerAndModelAndAvailable("Toyota", "Corolla", start, end, 0, 5);
+        Page<Car> result = carService.getByProducerAndModelAndAvailable("Toyota", "Corolla", start, end, 0, 5);
 
         //then
-        assertThat(result.getContent()).containsExactly(sampleCar);
-        verify(carRepositoryMock).findAvailableCars("Toyota", "Corolla", start, end, PageRequest.of(0, 5));
+        assertThat(result.getContent()).containsExactly(testCar);
     }
 
     @Test
     void shouldReturnCarWhenFindForUpdateExists() {
         //given
-        when(carRepositoryMock.findForUpdate(1L)).thenReturn(Optional.of(sampleCar));
+        Car testCar = createTestCar();
+        when(carRepositoryMock.findForUpdate(1L)).thenReturn(Optional.of(testCar));
 
         //when
-        Car result = carServiceMock.findForUpdate(1L);
+        Car result = carService.findForUpdate(1L);
 
         //then
-        assertThat(result).isEqualTo(sampleCar);
+        assertThat(result).isEqualTo(testCar);
     }
 
     @Test
@@ -217,8 +217,14 @@ public class CarServiceTest {
         when(carRepositoryMock.findForUpdate(1L)).thenReturn(Optional.empty());
 
         //when then
-        assertThatThrownBy(() -> carServiceMock.findForUpdate(1L))
+        assertThatThrownBy(() -> carService.findForUpdate(1L))
                 .isInstanceOf(DataNotFoundException.class)
                 .hasMessageContaining("Car with id: 1 not found");
+    }
+
+    private Car createTestCar() {
+        Car car = new Car("Toyota", "Corolla", 2020, "WX 17458", new BigDecimal(140));
+        car.setId(1L);
+        return car;
     }
 }

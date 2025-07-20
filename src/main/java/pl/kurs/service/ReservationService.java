@@ -48,23 +48,28 @@ public class ReservationService {
     @Transactional
     public Reservation updateReservation(ReservationDto reservationDto) {
         Reservation existingReservation = getReservationById(reservationDto.getId());
-        Car car = carService.findForUpdate(reservationDto.getCarId());
+
+        if (existingReservation.getStatus() == Status.CANCELED) {
+            throw new ConflictException("Cannot update canceled reservation");
+        }
+
+        if (!existingReservation.getCar().getId().equals(reservationDto.getCarId()) ||
+            !existingReservation.getCustomer().getId().equals(reservationDto.getCustomerId())) {
+            throw new ConflictException("Cannot change car or customer via update. Cancel and create new reservation.");
+        }
 
         if (reservationRepository.existsOverlapExcludingReservation(
-                car.getId(),
+                existingReservation.getCar().getId(),
                 reservationDto.getStartDate(),
                 reservationDto.getEndDate(),
-                reservationDto.getId()
+                existingReservation.getId()
         )) {
             throw new ConflictException("Car already booked for this date");
         }
-
-        existingReservation.setStatus(Status.CANCELED);
-        reservationRepository.save(existingReservation);
-
-        Reservation newReservation = createReservation(reservationDto);
-        newReservation.setId(null);
-        return reservationRepository.save(newReservation);
+        existingReservation.setStartDate(reservationDto.getStartDate());
+        existingReservation.setEndDate(reservationDto.getEndDate());
+        existingReservation.setTotalAmount(reservationDto.getTotalAmount());
+        return reservationRepository.save(existingReservation);
     }
 
     public Reservation cancelReservationById(Long id) {
